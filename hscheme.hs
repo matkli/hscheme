@@ -4,7 +4,11 @@
 
 module Main where
 
+-- Standard imports
 import System.Environment
+
+-- hscheme imports
+import Expr
 
 main :: IO ()
 main = do args <- getArgs
