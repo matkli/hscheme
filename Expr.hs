@@ -6,9 +6,8 @@ module Expr (Expr) where
 
 data Expr = Symbol String           -- Scheme symbol
           | Number Integer          -- We only support integers so far       
-          | String String           -- String ("asdf")
           | Bool Bool               -- Booleans
+          | String String           -- String ("asdf")
           | Pair Expr Expr          -- Basic list building block
-          | Nil                     -- Empty list
-
+          | Null                    -- Empty list
 
