@@ -11,7 +11,11 @@ import System.Environment
 import Expr
 
 main :: IO ()
-main = do args <- getArgs
-          if length args > 0
-             then putStrLn $ args !! 0
-             else return ()
+main = let e1 = Pair (Number 1) (Pair (Number 2) Null)
+           e2 = Pair (String "asdf") (Pair (Bool True) (Bool False))
+           e3 = Symbol "atom"
+           e4 = Null in
+       do putStrLn $ show e1
+          putStrLn $ show e2
+          putStrLn $ show e3
+          putStrLn $ show e4
