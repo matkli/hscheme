@@ -38,4 +38,4 @@ identifier =
 
 -- Read a scheme expression and print it's representation
 readExpr :: String -> IO ()
-readExpr = parseTest $ number <|> boolean <|> identifier
+readExpr = parseTest $ (try number) <|> boolean <|> identifier
