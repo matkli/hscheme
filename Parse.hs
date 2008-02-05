@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Parse (identifier, boolean) where
+module Parse ( readExpr, identifier, boolean ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
@@ -10,6 +10,13 @@ import Char
 
 -- Local imports
 import Expr
+
+-- Read a scheme expression and print it's representation
+-- ToDo: Use "parseTest" from Parsec instead
+readExpr :: String -> String
+readExpr input = case parse (identifier <|> boolean) "hscheme" input of
+    Left err -> "No match: " ++ show err
+    Right val -> "Found value: " ++ show val
 
 -- Identifiers
 identifier :: Parser Expr

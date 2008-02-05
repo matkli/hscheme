@@ -6,7 +6,6 @@ module Main where
 
 -- Standard imports
 import System.Environment
-import Text.ParserCombinators.Parsec ( parse, (<|>) )
 
 -- hscheme imports
 import Expr
@@ -15,13 +14,6 @@ import Parse
 main :: IO ()
 main = do args <- getArgs
           putStrLn $ readExpr (args !! 0)
-
--- Read a scheme expression and print it's representation
--- ToDo: Use "parseTest" from Parsec instead
-readExpr :: String -> String
-readExpr input = case parse (identifier <|> boolean) "hscheme" input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found value: " ++ show val
 
 -- Test the show functionality
 testShow :: IO ()
