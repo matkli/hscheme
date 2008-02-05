@@ -36,6 +36,26 @@ identifier =
           rest <- many $ initial <|> digit
           return $ Symbol $ map toLower $ first:rest
 
+-- Strings
+string_ :: Parser Expr
+string_ = 
+    do char '\"'
+       s <- many $ escape <|> noneOf "\""
+       char '\"'
+       return $ String s
+    where escape = do char '\\'
+                      c <- anyChar
+                      case c of
+                           '\"' -> return '\"'
+                           '\\' -> return '\\'
+                           'v' -> return '\v'
+                           'f' -> return '\f'
+                           't' -> return '\t'
+                           'r' -> return '\r'
+                           'n' -> return '\n'
+                           otherwise -> fail "Illegal escape sequence" 
+
 -- Read a scheme expression and print it's representation
 readExpr :: String -> IO ()
-readExpr = parseTest $ (try number) <|> boolean <|> identifier
+readExpr = parseTest $ (try number) <|> boolean <|> string_ <|> identifier
+
