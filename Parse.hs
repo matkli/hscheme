@@ -11,12 +11,22 @@ import Char
 -- Local imports
 import Expr
 
--- Read a scheme expression and print it's representation
--- ToDo: Use "parseTest" from Parsec instead
-readExpr :: String -> String
-readExpr input = case parse (identifier <|> boolean) "hscheme" input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found value: " ++ show val
+-- Numerical constants
+-- Only integers so far
+number :: Parser Expr
+number = do sign <- option '+' $ oneOf "+-"
+            rest <- many1 digit
+            return $ Number $ if sign == '+' 
+                                 -- read doesn't lide leading '+'
+                                 then read rest
+                                 else read (sign:rest)
+
+-- Boolean constants
+boolean :: Parser Expr
+boolean = do c <- char '#' >> oneOf "tTfF"
+             return $ case (toLower c) of
+                           'f' -> Bool False
+                           't' -> Bool True
 
 -- Identifiers
 identifier :: Parser Expr
@@ -26,13 +36,9 @@ identifier =
           rest <- many $ initial <|> digit
           return $ Symbol $ map toLower $ first:rest
 
--- Boolean constants
-boolean :: Parser Expr
-boolean = do c <- char '#' >> oneOf "tTfF"
-             return $ case (toLower c) of
-                           'f' -> Bool False
-                           't' -> Bool True
-
-
-
-
+-- Read a scheme expression and print it's representation
+-- ToDo: Use "parseTest" from Parsec instead
+readExpr :: String -> String
+readExpr input = case parse (number <|> boolean <|> identifier) "hscheme" input of
+    Left err -> "No match: " ++ show err
+    Right val -> "Found value: " ++ show val
