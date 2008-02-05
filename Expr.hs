@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Expr (Expr(..)) where
+module Expr ( Expr(..), testShow ) where
 
 data Expr = Symbol String           -- Scheme symbol
           | Number Integer          -- We only support integers so far       
@@ -29,4 +29,15 @@ showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
     showPairNoParen (Pair car Null) = show car
     showPairNoParen (Pair car cdr@(Pair _ _)) = show car ++ " " ++ showPairNoParen cdr
     showPairNoParen (Pair car cdr) = show car ++ " . " ++ show cdr
+
+-- Test the show functionality
+testShow :: IO ()
+testShow = let e1 = Pair (Number 1) (Pair (Number 2) Null)
+               e2 = Pair (String "asdf") (Pair (Bool True) (Bool False))
+               e3 = Symbol "atom"
+               e4 = Null in
+           do putStrLn $ show e1
+              putStrLn $ show e2
+              putStrLn $ show e3
+              putStrLn $ show e4
 
