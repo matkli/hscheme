@@ -12,7 +12,7 @@ data Expr = Symbol String           -- Scheme symbol
           | Null                    -- Empty list
 
 instance Show Expr where
-    show (Symbol x) = show x
+    show (Symbol x) = x
     show (Number x) = show x
     show (Bool True) = "#t"
     show (Bool False) = "#f"
