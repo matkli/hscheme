@@ -13,5 +13,5 @@ import Parse
 
 main :: IO ()
 main = do args <- getArgs
-          putStrLn $ readExpr (args !! 0)
+          readExpr (args !! 0)
 

@@ -37,8 +37,5 @@ identifier =
           return $ Symbol $ map toLower $ first:rest
 
 -- Read a scheme expression and print it's representation
--- ToDo: Use "parseTest" from Parsec instead
-readExpr :: String -> String
-readExpr input = case parse (number <|> boolean <|> identifier) "hscheme" input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found value: " ++ show val
+readExpr :: String -> IO ()
+readExpr = parseTest $ number <|> boolean <|> identifier
