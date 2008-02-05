@@ -22,7 +22,7 @@ instance Show Expr where
 
 -- Show a pair
 -- This is a little tricky, since a pair with a pair in cdr should be shown in
--- "list"-style, i.e. without the dot and without extra parantheses.
+-- "list"-style, i.e. without the dot and without extra parentheses.
 showPair :: Expr -> String
 showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
     showPairNoParen :: Expr -> String
