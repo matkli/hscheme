@@ -27,6 +27,6 @@ showPair :: Expr -> String
 showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
     showPairNoParen :: Expr -> String
     showPairNoParen (Pair car Null) = show car
-    showPairNoParen (Pair car cdr@(Pair _ _)) = show car ++ " " ++ showNoParen cdr
+    showPairNoParen (Pair car cdr@(Pair _ _)) = show car ++ " " ++ showPairNoParen cdr
     showPairNoParen (Pair car cdr) = show car ++ " . " ++ show cdr
 
