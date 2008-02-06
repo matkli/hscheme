@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Parse ( readExpr, identifier, boolean ) where
+module Parse ( readExpr, testParser ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
@@ -72,13 +72,27 @@ lexeme parser = do p <- parser
 
 -- Parse a complete expression
 expr :: Parser Expr
-expr = spaces >> (lexeme $ (try number)
-                        <|> boolean
-                        <|> string_
-                        <|> identifier
-                        <|> list)
+expr = (lexeme $ (try number)
+              <|> boolean
+              <|> string_
+              <|> identifier
+              <|> list)
 
 -- Read a scheme expression and print it's representation
-readExpr :: String -> IO ()
-readExpr = parseTest expr
+readExpr :: String -> Expr
+readExpr str = case parse (spaces >> expr) "" str of
+                    Left err -> error $ "Parse failed" ++ show err
+                    Right val -> val
 
+-- Parser test
+testParser :: IO ()
+testParser = sequence_ $ map (putStrLn . show . readExpr) testExpressions
+
+testExpressions = 
+    ["+47",
+     "\"String with \\\"escapes\\\":\\n\\tgoes\\n\\there\"",
+     " ( oddly  spaCed ( expreSSion ) ) ",
+     unlines ["((numbers +47 -47 0047)", 
+              " (booleans #t #f #T #F)",
+              " (strings \"Test\" \"asdf\")",
+              " (symbols a b c))"]]

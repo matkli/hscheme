@@ -13,5 +13,15 @@ import Parse
 
 main :: IO ()
 main = do args <- getArgs
-          readExpr (args !! 0)
+          let s = args !! 0
+          if s == "--test"
+             then runTests
+             else putStrLn $ show $ readExpr (args !! 0)
 
+runTests :: IO ()
+runTests = 
+    do putStrLn "Show tests:"
+       testShow
+       putChar '\n'
+       putStrLn "Parser tests:"
+       testParser
