@@ -11,7 +11,7 @@ import Char
 -- Local imports
 import Expr
 
--- Numerical constants
+-- Numerical literals
 -- Only integers so far
 number :: Parser Expr
 number = do sign <- option '+' $ oneOf "+-"
@@ -21,7 +21,7 @@ number = do sign <- option '+' $ oneOf "+-"
                                  then read rest
                                  else read (sign:rest)
 
--- Boolean constants
+-- Boolean literals
 boolean :: Parser Expr
 boolean = do c <- char '#' >> oneOf "tTfF"
              return $ case (toLower c) of
@@ -38,11 +38,10 @@ identifier =
 
 -- Strings
 string_ :: Parser Expr
-string_ = 
-    do char '\"'
-       s <- many $ escape <|> noneOf "\""
-       char '\"'
-       return $ String s
+string_ = do char '\"'
+             s <- many $ escape <|> noneOf "\""
+             char '\"'
+             return $ String s
     where escape = do char '\\'
                       c <- anyChar
                       case c of
@@ -55,7 +54,31 @@ string_ =
                            'n' -> return '\n'
                            otherwise -> fail "Illegal escape sequence" 
 
+-- Atoms, i.e. an identifier or a literal of some sort
+atom :: Parser Expr
+atom = spaces >> ((try number) <|> boolean <|> string_ <|> identifier)
+
+-- List
+list :: Parser Expr
+list = do char '(' >> spaces
+          lst <- expr `sepBy` spaces 
+          spaces >> char ')'
+          return $ listToPairs lst
+
+-- Any parser followed by optional space
+lexeme parser = do p <- parser
+                   spaces
+                   return p
+
+-- Parse a complete expression
+expr :: Parser Expr
+expr = spaces >> (lexeme $ (try number)
+                        <|> boolean
+                        <|> string_
+                        <|> identifier
+                        <|> list)
+
 -- Read a scheme expression and print it's representation
 readExpr :: String -> IO ()
-readExpr = parseTest $ (try number) <|> boolean <|> string_ <|> identifier
+readExpr = parseTest expr
 
