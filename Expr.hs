@@ -10,6 +10,7 @@ data Expr = Symbol String           -- Scheme symbol
           | String String           -- String ("asdf")
           | Pair Expr Expr          -- Basic list building block
           | Null                    -- Empty list
+          | PrimFunc ([Expr]->Expr) -- Primitive function
 
 instance Show Expr where
     show (Symbol x) = x
