@@ -63,7 +63,9 @@ list :: Parser Expr
 list = do char '(' >> spaces
           lst <- expr `sepBy` spaces 
           spaces >> char ')'
-          return $ listToPairs lst
+          return $ if length lst == 0
+                      then Null
+                      else listToPairs lst
 
 -- Any parser followed by optional space
 lexeme parser = do p <- parser
@@ -90,6 +92,7 @@ testParser = sequence_ $ map (putStrLn . show . readExpr) testExpressions
 
 testExpressions = 
     ["+47",
+     "()",
      "\"String with \\\"escapes\\\":\\n\\tgoes\\n\\there\"",
      " ( oddly  spaCed ( expreSSion ) ) ",
      unlines ["((numbers +47 -47 0047)", 
