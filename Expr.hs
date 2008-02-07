@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Expr ( Expr(..), testShow, listToPairs ) where
+module Expr ( Expr(..), testShow, isList, listToPairs, pairsToList ) where
 
 data Expr = Symbol String           -- Scheme symbol
           | Number Integer          -- We only support integers so far       
@@ -30,10 +30,21 @@ showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
     showPairNoParen (Pair car cdr@(Pair _ _)) = show car ++ " " ++ showPairNoParen cdr
     showPairNoParen (Pair car cdr) = show car ++ " . " ++ show cdr
 
--- Convert a haskell list to a scheme list, i.e. pairs
+-- Check if a pair is a proper list (i.e. Null terminated)
+isList :: Expr -> Bool
+isList Null = True
+isList (Pair a b) = isList b
+isList _ = False
+
+-- Convert a haskell list to a Scheme list, i.e. pairs
 listToPairs :: [Expr] -> Expr
 listToPairs [] = Null
 listToPairs (x:xs) = Pair x (listToPairs xs)
+
+-- Convert a Scheme list to a Haskell list
+pairsToList :: Expr -> [Expr]
+pairsToList Null = []
+pairsToList (Pair a b) = a:(pairsToList b)
 
 -- Test the show functionality
 testShow :: IO ()
