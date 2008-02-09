@@ -11,20 +11,19 @@ import System.Environment
 import Expr
 import Parse
 import Eval
+import Error
 
 main :: IO ()
 main = do args <- getArgs
           let s = args !! 0
           if s == "--test"
              then runTests
-             else putStrLn $ case readExpr (args !! 0) >>= eval of
-                                  Left err -> show err
-                                  Right val -> show val
+             else putStrLn $ showEither $ readExpr (args !! 0) >>= eval
 
 runTests :: IO ()
 runTests = 
-    do putStrLn "Show tests:"
-       testShow
+    do putStrLn "Test show:"
+       mapM_ (putStrLn . showEither) testExpr
        putChar '\n'
        putStrLn "Parser tests:"
-       testParser
+       mapM_ (putStrLn . showEither) testParser

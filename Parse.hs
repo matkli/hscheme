@@ -88,8 +88,8 @@ readExpr str = case parse (spaces >> expr) "" str of
                     Right val -> return val
 
 -- Parser test
-testParser :: IO ()
-testParser = sequence_ $ map (putStrLn . show . readExpr) testExpressions
+testParser :: [ThrowsError Expr]
+testParser = map readExpr testExpressions
 
 testExpressions = 
     ["+47",

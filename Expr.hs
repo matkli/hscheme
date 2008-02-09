@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Expr ( Expr(..), testShow, isList, listToPairs, pairsToList ) where
+module Expr ( Expr(..), isList, listToPairs, pairsToList, testExpr ) where
 
 import Types
 
@@ -42,14 +42,11 @@ pairsToList :: Expr -> [Expr]
 pairsToList Null = []
 pairsToList (Pair a b) = a:(pairsToList b)
 
--- Test the show functionality
-testShow :: IO ()
-testShow = let e1 = Pair (Number 1) (Pair (Number 2) Null)
-               e2 = Pair (String "asdf") (Pair (Bool True) (Bool False))
-               e3 = Symbol "atom"
-               e4 = Null in
-           do putStrLn $ show e1
-              putStrLn $ show e2
-              putStrLn $ show e3
-              putStrLn $ show e4
+-- Test expressions
+testExpr :: [Expr]
+testExpr = 
+    [Pair (Number 1) (Pair (Number 2) Null),
+     Pair (String "asdf") (Pair (Bool True) (Bool False)),
+     Symbol "atom",
+     Null]
 

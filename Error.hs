@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Error ( SchemeError(..), ThrowsError, throwError ) where
+module Error ( SchemeError(..), ThrowsError, throwError, showEither ) where
 
 -- System imports
 import Control.Monad.Error
@@ -32,4 +32,9 @@ showError (BadSpecialForm message expr) = message ++ ": " ++ show expr
 showError (NotFunction expr) = "Expected function; found: " ++ show expr
 showError (UnboundVar name) = "Variable not defined: " ++ name
 showError (Default message) = "Error: " ++ message
+
+-- Show either an error or an expression
+showEither :: ThrowsError Expr -> String
+showEither (Left err) = show err
+showEither (Right val) = show val
 
