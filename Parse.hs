@@ -10,6 +10,7 @@ import Char
 
 -- Local imports
 import Expr
+import Error
 
 -- Numerical literals
 -- Only integers so far
@@ -81,10 +82,10 @@ expr = (lexeme $ (try number)
               <|> list)
 
 -- Read a scheme expression and print it's representation
-readExpr :: String -> Expr
+readExpr :: String -> ThrowsError Expr
 readExpr str = case parse (spaces >> expr) "" str of
-                    Left err -> error $ "Parse failed" ++ show err
-                    Right val -> val
+                    Left err -> throwError $ ParseError err
+                    Right val -> return val
 
 -- Parser test
 testParser :: IO ()
@@ -98,4 +99,5 @@ testExpressions =
      unlines ["((numbers +47 -47 0047)", 
               " (booleans #t #f #T #F)",
               " (strings \"Test\" \"asdf\")",
-              " (symbols a b c))"]]
+              " (symbols a b c))"],
+     "(parse error #a)"]

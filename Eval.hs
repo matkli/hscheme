@@ -4,43 +4,45 @@
 
 module Eval( eval ) where
 
--- Standard imports
 
 -- Local imports
 import Expr
+import Error
+
 
 -- eval
 -- Evaluate a scheme expression
-eval :: Expr -> Expr
+eval :: Expr -> ThrowsError Expr
 eval (Symbol sym) = lookupName sym
-eval val@(Number _) = val       -- Number evaluate to themselves
-eval val@(Bool _) = val         -- Booleans evaluate to themselves
-eval val@(String _) = val       -- Strings evaluate to themselves
---eval (Pair (Symbol "quote") (Pair expr Null)) = expr -- Quoted expressions
+eval val@(Number _) = return val       -- Number evaluate to themselves
+eval val@(Bool _) = return val         -- Booleans evaluate to themselves
+eval val@(String _) = return val       -- Strings evaluate to themselves
 eval e@(Pair _ _)
     | isList e = evalList $ pairsToList e
-    | otherwise = error "Illegal expression"
-eval _ = error "Illegal expression"
+    | otherwise = throwError $ BadSpecialForm "Illegal expression" e
+eval badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
 -- Evaluate a list
-evalList :: [Expr] -> Expr
-evalList ((Symbol "quote"):expr:[]) = expr
-evalList (func:args) = apply (eval func) $ map eval args
-evalList _ = error "Illegal expression"
+evalList :: [Expr] -> ThrowsError Expr
+evalList ((Symbol "quote"):expr:[]) = return expr
+evalList (func:args) = do f <- eval func
+                          a <- mapM eval args
+                          apply f a
+evalList badForm = throwError $ BadSpecialForm "Illegal expression" $ listToPairs badForm
 
 -- Lookup a name
-lookupName :: String -> Expr
-lookupName name = maybe (error "Undefined variable")
-                        (\fun -> PrimFunc fun) 
+lookupName :: String -> ThrowsError Expr
+lookupName name = maybe (throwError $ UnboundVar name)
+                        (return . PrimFunc) 
                         (lookup name primitives)
 
 -- Apply a function
-apply :: Expr -> [Expr] -> Expr
-apply (PrimFunc func) = func
-apply _ = error "Not a function"
+apply :: Expr -> [Expr] -> ThrowsError Expr
+apply (PrimFunc func) args = func args
+apply notFunc _ = throwError $ NotFunction notFunc
 
 -- List of primitive functions
-primitives :: [(String, [Expr] -> Expr)]
+primitives :: [(String, [Expr] -> ThrowsError Expr)]
 primitives =
     [("+", numericFoldOp (+)),
      ("-", numericFoldOp (-)),
@@ -48,14 +50,14 @@ primitives =
      ("quotient", numericBinOp quot)]
 
 -- Create numerical fold operators
-numericFoldOp :: (Integer -> Integer -> Integer) -> [Expr] -> Expr
-numericFoldOp func args = Number $ foldl1 func $ map getNum args 
-    where getNum (Number x) = x
-          getNum _ = error "Expected a number"
+numericFoldOp :: (Integer -> Integer -> Integer) -> [Expr] -> ThrowsError Expr
+numericFoldOp func args = (mapM getNum args) >>= return . Number . foldl1 func
+    where getNum (Number x) = return x
+          getNum notNumber = throwError $ TypeError "Integer" notNumber
 
 -- Create numerical binary operators
-numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> Expr
+numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> ThrowsError Expr
 numericBinOp func args =
     if length args == 2
        then numericFoldOp func args
-       else error "Expected exactly 2 arguments"
+       else throwError $ NumArgs 2 args

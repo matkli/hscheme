@@ -17,7 +17,9 @@ main = do args <- getArgs
           let s = args !! 0
           if s == "--test"
              then runTests
-             else putStrLn $ show $ eval $ readExpr (args !! 0)
+             else putStrLn $ case readExpr (args !! 0) >>= eval of
+                                  Left err -> show err
+                                  Right val -> show val
 
 runTests :: IO ()
 runTests = 

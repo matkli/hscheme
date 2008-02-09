@@ -4,13 +4,7 @@
 
 module Expr ( Expr(..), testShow, isList, listToPairs, pairsToList ) where
 
-data Expr = Symbol String           -- Scheme symbol
-          | Number Integer          -- We only support integers so far       
-          | Bool Bool               -- Booleans
-          | String String           -- String ("asdf")
-          | Pair Expr Expr          -- Basic list building block
-          | Null                    -- Empty list
-          | PrimFunc ([Expr]->Expr) -- Primitive function
+import Types
 
 instance Show Expr where
     show (Symbol x) = x
@@ -20,6 +14,7 @@ instance Show Expr where
     show (String str) = "\"" ++ str ++ "\""
     show p@(Pair _ _) = showPair p
     show Null = "()"
+
 
 -- Show a pair
 -- This is a little tricky, since a pair with a pair in cdr should be shown in
