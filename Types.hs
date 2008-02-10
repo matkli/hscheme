@@ -13,7 +13,7 @@ data Expr = Symbol String           -- Scheme symbol
           | String String           -- String ("asdf")
           | Pair Expr Expr          -- Basic list building block
           | Null                    -- Empty list
-          | PrimFunc PrimitiveFunction -- Primitive function
+          | PrimFunc String PrimitiveFunction -- Primitive function
 
 -- Datatype for scheme functions
 type PrimitiveFunction = [Expr] -> ThrowsError Expr

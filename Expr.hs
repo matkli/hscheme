@@ -14,6 +14,7 @@ instance Show Expr where
     show (String str) = "\"" ++ str ++ "\""
     show p@(Pair _ _) = showPair p
     show Null = "()"
+    show (PrimFunc name _) = "#Primitive function: " ++ name
 
 
 -- Show a pair

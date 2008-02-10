@@ -36,12 +36,12 @@ evalList badForm = throwError $ BadSpecialForm "Illegal expression" $ listToPair
 -- Lookup a name
 lookupName :: String -> ThrowsError Expr
 lookupName name = maybe (throwError $ UnboundVar name)
-                        (return . PrimFunc) 
+                        (return . PrimFunc name) 
                         (lookup name primitives)
 
 -- Apply a function
 apply :: Expr -> [Expr] -> ThrowsError Expr
-apply (PrimFunc func) args = func args
+apply (PrimFunc _ func) args = func args
 apply notFunc _ = throwError $ NotFunction notFunc
 
 -- Test eval
@@ -55,6 +55,7 @@ testExpressions =                           -- Expected result
      "(- 3)",                               -- -3
      "(+)",                                 -- 0
      "(*)",                                 -- 1
+     "+",                                   -- #Primitive function: +
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
