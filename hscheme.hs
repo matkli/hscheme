@@ -6,6 +6,7 @@ module Main where
 
 -- Standard imports
 import System.Environment
+import IO
 
 -- hscheme imports
 import Expr
@@ -15,11 +16,22 @@ import Error
 
 main :: IO ()
 main = do args <- getArgs
-          let s = args !! 0
-          if s == "--test"
-             then runTests
-             else putStrLn $ showEither $ readExpr (args !! 0) >>= eval
+          case args of
+               [] -> sequence_ $ repeat $ runRepl
+               ("--test":_) -> runTests
+               expr -> putStrLn $ showEither $ readExpr (args !! 0) >>= eval
 
+-- Run simple read-eval-print loop
+runRepl :: IO ()
+runRepl = do putStr prompt >> hFlush stdout
+             ln <- getLine
+             putStrLn $ showEither $ readExpr ln >>= eval
+
+-- prompt
+prompt = ">>> "
+
+
+-- Run module test cases
 runTests :: IO ()
 runTests = 
     do putStrLn "Test show:"
