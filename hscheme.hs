@@ -23,7 +23,10 @@ main = do args <- getArgs
 runTests :: IO ()
 runTests = 
     do putStrLn "Test show:"
-       mapM_ (putStrLn . showEither) testExpr
+       mapM_ (putStrLn . show) testExpr
        putChar '\n'
        putStrLn "Parser tests:"
        mapM_ (putStrLn . showEither) testParser
+       putChar '\n'
+       putStrLn "Eval tests:"
+       mapM_ (putStrLn . showEither) testEval

@@ -2,13 +2,15 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Eval( eval ) where
+module Eval( eval, testEval ) where
 
+-- System imports
+import Control.Monad
 
 -- Local imports
 import Expr
 import Error
-
+import Parse (readExpr)
 
 -- eval
 -- Evaluate a scheme expression
@@ -61,3 +63,19 @@ numericBinOp func args =
     if length args == 2
        then numericFoldOp func args
        else throwError $ NumArgs 2 args
+
+-- Test eval
+testEval :: [ThrowsError Expr]
+testEval = map (readExpr >=> eval) testExpressions
+
+testExpressions =                           -- Expected result
+    ["(quote (this is a quoted list))",     -- (this is a quoted list)
+     "(* (- 47 11) (+ 47 11))",             -- 2088
+     "(quotient 8 3)",                      -- 2
+     "(- 3)",                               -- -3
+     "unboundVar",                          -- (Unbound variable error)
+     "(+ 4 #t)",                            -- (Type error) 
+     "(quotient 1 2 3)",                    -- (Number of arguments error)
+     "(1 2 3)",                             -- (Not a funciton error)
+     "#a"]                                  -- (Parse error)
+
