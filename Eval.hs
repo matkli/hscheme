@@ -6,6 +6,7 @@ module Eval( eval, testEval ) where
 
 -- System imports
 import Control.Monad
+import Data.List
 
 -- Local imports
 import Expr
@@ -46,23 +47,33 @@ apply notFunc _ = throwError $ NotFunction notFunc
 -- List of primitive functions
 primitives :: [(String, [Expr] -> ThrowsError Expr)]
 primitives =
-    [("+", numericFoldOp (+)),
-     ("-", numericFoldOp (-)),
-     ("*", numericFoldOp (*)),
+    [("+", numericFoldOp (+) 0),
+     ("*", numericFoldOp (*) 1),
+     ("-", minus),
      ("quotient", numericBinOp quot)]
 
 -- Create numerical fold operators
-numericFoldOp :: (Integer -> Integer -> Integer) -> [Expr] -> ThrowsError Expr
-numericFoldOp func args = (mapM getNum args) >>= return . Number . foldl1 func
-    where getNum (Number x) = return x
-          getNum notNumber = throwError $ TypeError "Integer" notNumber
+numericFoldOp :: (Integer -> Integer -> Integer) -> Integer -> [Expr] -> ThrowsError Expr
+numericFoldOp func id args = (mapM getNumber args) >>= return . Number . foldl' func id 
 
 -- Create numerical binary operators
 numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> ThrowsError Expr
-numericBinOp func args =
-    if length args == 2
-       then numericFoldOp func args
-       else throwError $ NumArgs 2 args
+numericBinOp func (a:b:[]) = liftM2 (\a b -> Number $ func a b) (getNumber a) (getNumber b)
+numericBinOp func args = throwError $ NumArgs 2 args
+
+-- Minus
+-- This is a little special since a unary minus should negate it's argument,
+-- while binary (or m-ary) minus should subtract _from_ it's first argument.
+minus :: [Expr] -> ThrowsError Expr
+minus [] = throwError $ NumArgs 1 []
+minus (x:[]) = getNumber x >>= return . Number . negate
+minus (x:xs) = getNumber x >>= \x -> numericFoldOp (-) x xs
+
+-- Get a number (or throw an error)
+getNumber :: Expr -> ThrowsError Integer
+getNumber (Number x) = return x
+getNumber notNumber = throwError $ TypeError "Integer" notNumber
+
 
 -- Test eval
 testEval :: [ThrowsError Expr]
@@ -73,6 +84,8 @@ testExpressions =                           -- Expected result
      "(* (- 47 11) (+ 47 11))",             -- 2088
      "(quotient 8 3)",                      -- 2
      "(- 3)",                               -- -3
+     "(+)",                                 -- 0
+     "(*)",                                 -- 1
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
