@@ -93,6 +93,10 @@ testExpressions =                           -- Expected result
      "(+)",                                 -- 0
      "(*)",                                 -- 1
      "+",                                   -- #primitive +
+     "(define a 4)",                        -- #undefined
+     "a",                                   -- 4
+     "(set! a (+ 1 3))",                    -- #undefined
+     "a",                                   -- 1
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
