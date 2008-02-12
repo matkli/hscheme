@@ -15,6 +15,7 @@ instance Show Expr where
     show p@(Pair _ _) = showPair p
     show Null = "()"
     show (PrimFunc name _) = "#primitive " ++ name
+    show Undefined = "#undefined"
 
 
 -- Show a pair

@@ -22,6 +22,7 @@ data Expr = Symbol String           -- Scheme symbol
           | Pair Expr Expr          -- Basic list building block
           | Null                    -- Empty list
           | PrimFunc String PrimitiveFunction -- Primitive function
+          | Undefined               -- Return from e.g. set
 
 -- Datatype for scheme functions
 type PrimitiveFunction = [Expr] -> IOThrowsError Expr

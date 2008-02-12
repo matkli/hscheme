@@ -21,28 +21,24 @@ import Primitives
 main :: IO ()
 main = do args <- getArgs
           case args of
-               [] -> sequence_ $ repeat $ runRepl
+               [] -> getTopEnv >>= (sequence_ . repeat . readEvalPrint)
                ("--test":_) -> runTests
                expr -> runOne $ args !! 0
 
--- evaluate an expression and print the result
-evalAndPrint :: [Env] -> String -> IO ()
-evalAndPrint env expr = evalString env expr >>= putStrLn
-
 -- Evaluate a string
 evalString :: [Env] -> String -> IO String
-evalString env expr = liftM showEither $ runErrorT 
-    $ (liftThrows $ readExpr expr) >>= eval env
+evalString env expr = 
+    liftM showEither $ runErrorT $ (liftThrows $ readExpr expr) >>= eval env
 
 -- runOne
 runOne :: String -> IO ()
-runOne expr = getTopEnv >>= flip evalAndPrint expr
+runOne expr = getTopEnv >>= flip evalString expr >>= putStrLn
 
 -- Run simple read-eval-print loop
-runRepl :: IO ()
-runRepl = do putStr prompt >> hFlush stdout
-             ln <- getLine
-             runOne ln
+readEvalPrint :: [Env] -> IO ()
+readEvalPrint env = do putStr prompt >> hFlush stdout
+                       ln <- getLine
+                       evalString env ln >>= putStrLn
 
 -- prompt
 prompt = ">>> "

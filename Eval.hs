@@ -17,10 +17,10 @@ import Parse (readExpr)
 -- eval
 -- Evaluate a scheme expression in a closure
 eval :: [Env] -> Expr -> IOThrowsError Expr
-eval env (Symbol sym) = getVar env sym
-eval _ val@(Number _) = return val       -- Number evaluate to themselves
-eval _ val@(Bool _) = return val         -- Booleans evaluate to themselves
-eval _ val@(String _) = return val       -- Strings evaluate to themselves
+eval env (Symbol sym) = getVar env sym  -- lookup variable
+eval _ val@(Number _) = return val      -- Number evaluate to themselves
+eval _ val@(Bool _) = return val        -- Booleans evaluate to themselves
+eval _ val@(String _) = return val      -- Strings evaluate to themselves
 eval env expr@(Pair _ _)
     | isList expr = evalList env (pairsToList expr)
     | otherwise = throwError $ BadSpecialForm "Illegal expression" expr
@@ -28,7 +28,8 @@ eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
 -- Evaluate a list
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
-evalList _ ((Symbol "quote"):expr:[]) = return expr
+evalList _ [(Symbol "quote"), expr] = return expr
+evalList env [(Symbol "set!"), (Symbol var), expr] = setVar env var expr
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -44,18 +45,25 @@ isBound :: [Env] -> String -> IO Bool
 isBound [] _ = return False
 isBound (e:es) name = readIORef e >>= maybe (isBound es name) (const $ return True) . lookup name   
 
--- Lookup a name in an enviroment
-getVar :: [Env] -> String -> IOThrowsError Expr
-getVar [] name = throwError $ UnboundVar name
-getVar (e:es) name = 
+-- Lookup a name and get a reference to the expression bound to that name
+getRef :: [Env] -> String -> IOThrowsError (IORef Expr)
+getRef [] name = throwError $ UnboundVar name
+getRef (e:es) name = 
     do bindings <- liftIO $ readIORef e
-       maybe (getVar es name)
-             (liftIO . readIORef)
+       maybe (getRef es name)
+             return 
              (lookup name bindings)
 
+-- Get the value of a variable
+getVar :: [Env] -> String -> IOThrowsError Expr
+getVar env name = getRef env name >>= (liftIO . readIORef)
+
 -- Set the value of a variable
---setVar :: Env -> String -> IOThrowsError ()
---setvar
+setVar :: [Env] -> String -> Expr -> IOThrowsError Expr
+setVar env name val = do ref <- getRef env name
+                         liftIO $ writeIORef ref val
+                         return Undefined
+
 
 -- Create an empty environment
 nullEnv :: IO Env
@@ -72,7 +80,7 @@ testExpressions =                           -- Expected result
      "(- 3)",                               -- -3
      "(+)",                                 -- 0
      "(*)",                                 -- 1
-     "+",                                   -- #Primitive function: +
+     "+",                                   -- #primitive +
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
