@@ -29,7 +29,8 @@ eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 -- Evaluate a list
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _ [(Symbol "quote"), expr] = return expr
-evalList env [(Symbol "set!"), (Symbol var), expr] = setVar env var expr
+evalList env [(Symbol "set!"), (Symbol name), expr] = setVar env name expr
+evalList env [(Symbol "define"), (Symbol name), expr] = define env name expr
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -64,6 +65,17 @@ setVar env name val = do ref <- getRef env name
                          liftIO $ writeIORef ref val
                          return Undefined
 
+-- define
+-- This will bind a variable in the innermost environment if it is not already
+-- defined there. If it is defined (in the innermost environment) the behaviour
+-- is equivalent to set!
+define :: [Env] -> String -> Expr -> IOThrowsError Expr
+define env name val = 
+    do b <- liftIO $ isBound [head env] name
+       if b then setVar env name val
+            else liftIO $ do var <- newIORef val
+                             modifyIORef (head env) ((name,var):)
+                             return Undefined
 
 -- Create an empty environment
 nullEnv :: IO Env
