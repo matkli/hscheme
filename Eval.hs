@@ -29,8 +29,8 @@ eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 -- Evaluate a list
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _ [(Symbol "quote"), expr] = return expr
-evalList env [(Symbol "set!"), (Symbol name), expr] = setVar env name expr
-evalList env [(Symbol "define"), (Symbol name), expr] = define env name expr
+evalList env [(Symbol "set!"), (Symbol name), expr] = eval env expr >>= setVar env name
+evalList env [(Symbol "define"), (Symbol name), expr] = eval env expr >>= define env name
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -95,8 +95,8 @@ testExpressions =                           -- Expected result
      "+",                                   -- #primitive +
      "(define a 4)",                        -- #undefined
      "a",                                   -- 4
-     "(set! a (+ 1 3))",                    -- #undefined
-     "a",                                   -- 1
+     "(set! a (+ 1 1))",                    -- #undefined
+     "a",                                   -- 2
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
