@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Error ( SchemeError(..), ThrowsError, throwError, showEither ) where
+module Error ( showEither, liftThrows ) where 
 
 -- System imports
 import Control.Monad.Error
@@ -38,3 +38,7 @@ showEither :: ThrowsError Expr -> String
 showEither (Left err) = show err
 showEither (Right val) = show val
 
+-- Lift a regulare ThrowsError into IOThrowsError
+liftThrows :: ThrowsError a -> IOThrowsError a
+liftThrows (Left err) =throwError err
+liftThrows (Right val) = return val

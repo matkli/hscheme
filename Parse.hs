@@ -6,9 +6,11 @@ module Parse ( readExpr, testParser ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
+import Control.Monad.Error
 import Char
 
 -- Local imports
+import Types
 import Expr
 import Error
 

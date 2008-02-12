@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Expr ( Expr(..), isList, listToPairs, pairsToList, testExpr ) where
+module Expr ( isList, listToPairs, pairsToList, testExpr ) where
 
 import Types
 
@@ -14,7 +14,7 @@ instance Show Expr where
     show (String str) = "\"" ++ str ++ "\""
     show p@(Pair _ _) = showPair p
     show Null = "()"
-    show (PrimFunc name _) = "#Primitive function: " ++ name
+    show (PrimFunc name _) = "#primitive " ++ name
 
 
 -- Show a pair
