@@ -31,6 +31,7 @@ evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _ [(Symbol "quote"), expr] = return expr
 evalList env [(Symbol "set!"), (Symbol name), expr] = eval env expr >>= setVar env name
 evalList env [(Symbol "define"), (Symbol name), expr] = eval env expr >>= define env name
+evalList env ((Symbol "begin"):exprs) = liftM last $ mapM (eval env) exprs
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -97,6 +98,7 @@ testExpressions =                           -- Expected result
      "a",                                   -- 4
      "(set! a (+ 1 1))",                    -- #undefined
      "a",                                   -- 2
+     "(begin (+ 1 2) (define q 3) (- 10 q))",   -- 7
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
