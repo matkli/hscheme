@@ -12,7 +12,7 @@ import Char
 -- Local imports
 import Types
 import Expr
-import Error
+import Error ()
 
 -- Numerical literals
 -- Only integers so far
@@ -57,10 +57,6 @@ string_ = do char '\"'
                            'n' -> return '\n'
                            otherwise -> fail "Illegal escape sequence" 
 
--- Atoms, i.e. an identifier or a literal of some sort
-atom :: Parser Expr
-atom = spaces >> ((try number) <|> boolean <|> string_ <|> identifier)
-
 -- List
 list :: Parser Expr
 list = do char '(' >> spaces
@@ -71,6 +67,7 @@ list = do char '(' >> spaces
                       else listToPairs lst
 
 -- Any parser followed by optional space
+lexeme ::  GenParser Char st t -> GenParser Char st t
 lexeme parser = do p <- parser
                    spaces
                    return p
@@ -93,6 +90,7 @@ readExpr str = case parse (spaces >> expr) "" str of
 testParser :: [ThrowsError Expr]
 testParser = map readExpr testExpressions
 
+testExpressions :: [String]
 testExpressions = 
     ["+47",
      "()",

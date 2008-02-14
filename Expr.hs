@@ -32,7 +32,7 @@ showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
 -- Check if a pair is a proper list (i.e. Null terminated)
 isList :: Expr -> Bool
 isList Null = True
-isList (Pair a b) = isList b
+isList (Pair _ b) = isList b
 isList _ = False
 
 -- Convert a haskell list to a Scheme list, i.e. pairs

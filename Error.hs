@@ -9,7 +9,7 @@ import Control.Monad.Error
 
 -- Local imports
 import Types
-import Expr
+import Expr ()
 
 
 -- Make SchemeError an Error instance
