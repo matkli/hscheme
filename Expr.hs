@@ -15,6 +15,7 @@ instance Show Expr where
     show p@(Pair _ _) = showPair p
     show Null = "()"
     show (PrimFunc name _) = "#primitive " ++ name
+    show (Function env args body) = "(lambda (" ++ unwords args ++ ") ...)"
     show Undefined = "#undefined"
 
 

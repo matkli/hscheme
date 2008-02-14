@@ -32,6 +32,7 @@ evalList _ [(Symbol "quote"), expr] = return expr
 evalList env [(Symbol "set!"), (Symbol name), expr] = eval env expr >>= setVar env name
 evalList env [(Symbol "define"), (Symbol name), expr] = eval env expr >>= define env name
 evalList env ((Symbol "begin"):exprs) = liftM last $ mapM (eval env) exprs
+evalList env ((Symbol "lambda"):formals@(Pair _ _):body) = liftThrows $ lambda env formals body
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -40,6 +41,9 @@ evalList _ badForm = throwError $ BadSpecialForm "Illegal expression" $ listToPa
 -- Apply a function
 apply :: Expr -> [Expr] -> IOThrowsError Expr
 apply (PrimFunc _ func) args = func args
+apply (Function closure formals body) args =
+    do env <- bindVars formals args
+       liftM last $ mapM (eval (env:closure)) body  
 apply notFunc _ = throwError $ NotFunction notFunc
 
 -- Check if a variable name is bound in an environment
@@ -78,6 +82,22 @@ define env name val =
                              modifyIORef (head env) ((name,var):)
                              return Undefined
 
+-- Create a new environment with boud variables
+bindVars :: [String] -> [Expr] -> IOThrowsError Env
+bindVars names values = if length names /= length values 
+                           then throwError $ NumArgs (toInteger $ length names) values
+                           else do vars <- liftIO $ mapM newIORef values
+                                   liftIO $ newIORef $ zip names vars
+
+-- Create a function
+lambda :: [Env] -> Expr -> [Expr] -> ThrowsError Expr
+lambda env formals body
+    | isList formals = do argNames <- mapM getSymbol $ pairsToList formals
+                          return $ Function env argNames body
+    where getSymbol (Symbol argName) = return argName
+          getSymbol _ = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" formals
+
+
 -- Create an empty environment
 nullEnv :: IO Env
 nullEnv = newIORef []
@@ -99,6 +119,10 @@ testExpressions =                           -- Expected result
      "(set! a (+ 1 1))",                    -- #undefined
      "a",                                   -- 2
      "(begin (+ 1 2) (define q 3) (- 10 q))",   -- 7
+     "(lambda (x y) (+ x y))",              -- (lambda (x y) ...)
+     "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))",    -- #undefined
+     "(f 3 4)",                             -- 10
+     "(f 1 2 3)",                           -- (Number of arguments error)
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
