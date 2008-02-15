@@ -11,7 +11,6 @@ import Data.IORef
 
 -- Local imports
 import Types
-import Error ()
 
 
 -- List of primitive functions

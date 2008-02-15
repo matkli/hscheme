@@ -11,10 +11,8 @@ import Control.Monad.Error
 
 -- hscheme imports
 import Types
-import Expr
 import Parse
 import Eval
-import Error
 import Primitives
 
 

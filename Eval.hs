@@ -10,7 +10,6 @@ import Data.IORef
 
 -- Local imports
 import Types
-import Error
 import Parse (readExpr)
 
 -- eval

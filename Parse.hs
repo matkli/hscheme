@@ -11,7 +11,6 @@ import Char
 
 -- Local imports
 import Types
-import Error ()
 
 -- Numerical literals
 -- Only integers so far
