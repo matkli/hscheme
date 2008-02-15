@@ -11,7 +11,6 @@ import Char
 
 -- Local imports
 import Types
-import Expr
 import Error ()
 
 -- Numerical literals
@@ -20,7 +19,7 @@ number :: Parser Expr
 number = do sign <- option '+' $ oneOf "+-"
             rest <- many1 digit
             return $ Number $ if sign == '+' 
-                                 -- read doesn't lide leading '+'
+                                 -- read doesn't like leading '+'
                                  then read rest
                                  else read (sign:rest)
 
@@ -55,16 +54,14 @@ string_ = do char '\"'
                            't' -> return '\t'
                            'r' -> return '\r'
                            'n' -> return '\n'
-                           otherwise -> fail "Illegal escape sequence" 
+                           _ -> fail "Illegal escape sequence" 
 
 -- List
 list :: Parser Expr
 list = do char '(' >> spaces
           lst <- expr `sepBy` spaces 
           spaces >> char ')'
-          return $ if length lst == 0
-                      then Null
-                      else listToPairs lst
+          return $ List lst
 
 -- Any parser followed by optional space
 lexeme ::  GenParser Char st t -> GenParser Char st t

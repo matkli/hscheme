@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Expr ( isList, listToPairs, pairsToList, testExpr ) where
+module Expr ( testExpr ) where
 
 import Types
 
@@ -12,44 +12,29 @@ instance Show Expr where
     show (Bool True) = "#t"
     show (Bool False) = "#f"
     show (String str) = "\"" ++ str ++ "\""
-    show p@(Pair _ _) = showPair p
-    show Null = "()"
+    show (List xs) = showListParen xs
+    show (Dotted xs cdr) = showDotted xs cdr
     show (PrimFunc name _) = "#primitive " ++ name
-    show (Function env args body) = "(lambda (" ++ unwords args ++ ") ...)"
+    show (Function _ args _) = "(lambda (" ++ unwords args ++ ") ...)"
     show Undefined = "#undefined"
 
+-- Show a list
+showListParen :: [Expr] -> String
+showListParen xs = "(" ++ showListNoParen xs ++ ")"
 
--- Show a pair
--- This is a little tricky, since a pair with a pair in cdr should be shown in
--- "list"-style, i.e. without the dot and without extra parentheses.
-showPair :: Expr -> String
-showPair p@(Pair _ _) = "(" ++ showPairNoParen p ++ ")" where
-    showPairNoParen :: Expr -> String
-    showPairNoParen (Pair car Null) = show car
-    showPairNoParen (Pair car cdr@(Pair _ _)) = show car ++ " " ++ showPairNoParen cdr
-    showPairNoParen (Pair car cdr) = show car ++ " . " ++ show cdr
+-- Show list elements
+showListNoParen :: [Expr] -> String
+showListNoParen = unwords . map show
 
--- Check if a pair is a proper list (i.e. Null terminated)
-isList :: Expr -> Bool
-isList Null = True
-isList (Pair _ b) = isList b
-isList _ = False
-
--- Convert a haskell list to a Scheme list, i.e. pairs
-listToPairs :: [Expr] -> Expr
-listToPairs [] = Null
-listToPairs (x:xs) = Pair x (listToPairs xs)
-
--- Convert a Scheme list to a Haskell list
-pairsToList :: Expr -> [Expr]
-pairsToList Null = []
-pairsToList (Pair a b) = a:(pairsToList b)
+-- Show a dotted list or a pair
+showDotted :: [Expr] -> Expr -> String
+showDotted xs cdr = "(" ++ showListNoParen xs ++ " . " ++ show cdr ++ ")"
 
 -- Test expressions
 testExpr :: [Expr]
 testExpr = 
-    [Pair (Number 1) (Pair (Number 2) Null),
-     Pair (String "asdf") (Pair (Bool True) (Bool False)),
+    [List [Number 1, Number 2],
+     Dotted [String "asdf", Bool True] (Bool False),
      Symbol "atom",
-     Null]
+     List []]
 

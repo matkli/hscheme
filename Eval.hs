@@ -10,7 +10,6 @@ import Data.IORef
 
 -- Local imports
 import Types
-import Expr
 import Error
 import Parse (readExpr)
 
@@ -21,9 +20,7 @@ eval env (Symbol sym) = getVar env sym  -- lookup variable
 eval _ val@(Number _) = return val      -- Number evaluate to themselves
 eval _ val@(Bool _) = return val        -- Booleans evaluate to themselves
 eval _ val@(String _) = return val      -- Strings evaluate to themselves
-eval env expr@(Pair _ _)
-    | isList expr = evalList env (pairsToList expr)
-    | otherwise = throwError $ BadSpecialForm "Illegal expression" expr
+eval env (List xs) = evalList env xs
 eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
 -- Evaluate a list
@@ -32,11 +29,11 @@ evalList _ [(Symbol "quote"), expr] = return expr
 evalList env [(Symbol "set!"), (Symbol name), expr] = eval env expr >>= setVar env name
 evalList env [(Symbol "define"), (Symbol name), expr] = eval env expr >>= define env name
 evalList env ((Symbol "begin"):exprs) = liftM last $ mapM (eval env) exprs
-evalList env ((Symbol "lambda"):formals@(Pair _ _):body) = liftThrows $ lambda env formals body
+evalList env ((Symbol "lambda"):(List formals):body) = liftThrows $ lambda env formals body
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
-evalList _ badForm = throwError $ BadSpecialForm "Illegal expression" $ listToPairs badForm
+evalList _ badForm = throwError $ BadSpecialForm "Illegal expression" $ List badForm
 
 -- Apply a function
 apply :: Expr -> [Expr] -> IOThrowsError Expr
@@ -90,12 +87,12 @@ bindVars names values = if length names /= length values
                                    liftIO $ newIORef $ zip names vars
 
 -- Create a function
-lambda :: [Env] -> Expr -> [Expr] -> ThrowsError Expr
-lambda env formals body
-    | isList formals = do argNames <- mapM getSymbol $ pairsToList formals
-                          return $ Function env argNames body
+lambda :: [Env] -> [Expr] -> [Expr] -> ThrowsError Expr
+lambda env formals body =
+    do argNames <- mapM getSymbol formals
+       return $ Function env argNames body
     where getSymbol (Symbol argName) = return argName
-          getSymbol _ = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" formals
+          getSymbol _ = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ List formals
 
 
 -- Create an empty environment
@@ -106,6 +103,7 @@ nullEnv = newIORef []
 testEval :: [Env] -> [IOThrowsError Expr]
 testEval env = map (liftThrows . readExpr >=> eval env) testExpressions
 
+testExpressions :: [String]
 testExpressions =                           -- Expected result
     ["(quote (this is a quoted list))",     -- (this is a quoted list)
      "(* (- 47 11) (+ 47 11))",             -- 2088
