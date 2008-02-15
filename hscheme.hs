@@ -23,7 +23,7 @@ main = do args <- getArgs
           case args of
                [] -> getTopEnv >>= (sequence_ . repeat . readEvalPrint)
                ("--test":_) -> runTests
-               expr -> runOne $ args !! 0
+               _ -> runOne $ args !! 0
 
 -- Evaluate a string
 evalString :: [Env] -> String -> IO String
@@ -41,6 +41,7 @@ readEvalPrint env = do putStr prompt >> hFlush stdout
                        evalString env ln >>= putStrLn
 
 -- prompt
+prompt :: String
 prompt = ">>> "
 
 -- Top-level environment

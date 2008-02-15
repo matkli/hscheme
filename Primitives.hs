@@ -6,13 +6,12 @@ module Primitives ( getPrimitiveEnv ) where
 
 -- System imports
 import Data.List
-import Control.Monad
 import Control.Monad.Error
 import Data.IORef
 
 -- Local imports
 import Types
-import Error
+import Error ()
 
 
 -- List of primitive functions
@@ -33,12 +32,12 @@ getPrimitiveEnv =
 
 -- Create numerical fold operators
 numericFoldOp :: (Integer -> Integer -> Integer) -> Integer -> PrimitiveFunction
-numericFoldOp func id args = (mapM getNumber args) >>= return . Number . foldl' func id 
+numericFoldOp func start args = (mapM getNumber args) >>= return . Number . foldl' func start
 
 -- Create numerical binary operators
 numericBinOp :: (Integer -> Integer -> Integer) -> PrimitiveFunction
-numericBinOp func (a:b:[]) = liftM2 (\a b -> Number $ func a b) (getNumber a) (getNumber b)
-numericBinOp func args = throwError $ NumArgs 2 args
+numericBinOp func (a:b:[]) = liftM2 (\x y -> Number $ func x y) (getNumber a) (getNumber b)
+numericBinOp _ args = throwError $ NumArgs 2 args
 
 -- Minus
 -- This is a little special since a unary minus should negate it's argument,
@@ -46,7 +45,7 @@ numericBinOp func args = throwError $ NumArgs 2 args
 minus :: PrimitiveFunction
 minus [] = throwError $ NumArgs 1 []
 minus (x:[]) = getNumber x >>= return . Number . negate
-minus (x:xs) = getNumber x >>= \x -> numericFoldOp (-) x xs
+minus (x:xs) = getNumber x >>= \num -> numericFoldOp (-) num xs
 
 -- Get a number (or throw an error)
 getNumber :: Expr -> IOThrowsError Integer

@@ -27,7 +27,7 @@ showError (NumArgs expected found) = "Error: Expected " ++ (show expected)
     ++ " args; found: " ++ (unwords $ map show found)
 showError (TypeError expected found) = "Type error: Expected " ++ expected
     ++ "; found: " ++ (show found)
-showError (ParseError err) = "Parse error: " ++ show err
+showError (ParseError err) = "Parse error " ++ show err
 showError (BadSpecialForm message expr) = message ++ ": " ++ show expr
 showError (NotFunction expr) = "Expected function; found: " ++ show expr
 showError (UnboundVar name) = "Variable not defined: " ++ name
