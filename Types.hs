@@ -32,7 +32,7 @@ data Expr = Symbol String           -- Scheme symbol
           | List [Expr]             -- "Proper" lists (i.e null-terminated)
           | Dotted [Expr] Expr      -- "Dotted" lists (or pairs)
           | PrimFunc String PrimitiveFunction -- Primitive function
-          | Function [Env] [String] [Expr]    -- Scheme function
+          | Function [Env] [String] (Maybe String) [Expr]    -- Scheme function
           | Undefined               -- Return from e.g. set
 
 instance Show Expr where show = showExpr
@@ -50,7 +50,8 @@ showExpr (String str) = "\"" ++ str ++ "\""
 showExpr (List xs) = showListParen xs
 showExpr (Dotted xs cdr) = showDotted xs cdr
 showExpr (PrimFunc name _) = "#primitive " ++ name
-showExpr (Function _ args _) = "(lambda (" ++ unwords args ++ ") ...)"
+showExpr (Function _ args varargs _) = 
+    "(lambda (" ++ unwords args ++ (maybe "" (" . "++) varargs) ++ ") ...)"
 showExpr Undefined = "#undefined"
 
 -- Show a list

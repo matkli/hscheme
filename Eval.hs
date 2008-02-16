@@ -24,11 +24,12 @@ eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
 -- Evaluate a list
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
-evalList _ [(Symbol "quote"), expr] = return expr
-evalList env [(Symbol "set!"), (Symbol name), expr] = eval env expr >>= setVar env name
-evalList env [(Symbol "define"), (Symbol name), expr] = eval env expr >>= define env name
-evalList env ((Symbol "begin"):exprs) = liftM last $ mapM (eval env) exprs
-evalList env ((Symbol "lambda"):(List formals):body) = liftThrows $ lambda env formals body
+evalList _ [Symbol "quote", expr] = return expr
+evalList env [Symbol "set!", Symbol name, expr] = eval env expr >>= setVar env name
+evalList env [Symbol "define", Symbol name, expr] = eval env expr >>= define env name
+evalList env (Symbol "begin" : exprs) = liftM last $ mapM (eval env) exprs
+evalList env (Symbol "lambda" : List args : body) = liftThrows $ lambda env args Nothing body
+evalList env (Symbol "lambda" : Dotted args varargs : body) = liftThrows $ lambda env args (Just varargs) body
 evalList env (func:args) = do f <- eval env func
                               a <- mapM (eval env) args
                               apply f a
@@ -37,9 +38,15 @@ evalList _ badForm = throwError $ BadSpecialForm "Illegal expression" $ List bad
 -- Apply a function
 apply :: Expr -> [Expr] -> IOThrowsError Expr
 apply (PrimFunc _ func) args = func args
-apply (Function closure formals body) args =
-    do env <- bindVars formals args
-       liftM last $ mapM (eval (env:closure)) body  
+apply (Function closure argNames vaName body) args =
+    let numArgs = length args
+        minArgs = length argNames
+    in if numArgs < minArgs || (numArgs > minArgs && vaName == Nothing)
+          then throwError $ NumArgs (toInteger minArgs) args
+          else do let (a, va) = splitAt minArgs args
+                  env <- liftM (:closure) $ letVars argNames a
+                  maybe (return Undefined) (\s -> define env s (List va)) vaName
+                  liftM last $ mapM (eval env) body  
 apply notFunc _ = throwError $ NotFunction notFunc
 
 -- Check if a variable name is bound in an environment
@@ -78,20 +85,19 @@ define env name val =
                              modifyIORef (head env) ((name,var):)
                              return Undefined
 
--- Create a new environment with boud variables
-bindVars :: [String] -> [Expr] -> IOThrowsError Env
-bindVars names values = if length names /= length values 
-                           then throwError $ NumArgs (toInteger $ length names) values
-                           else do vars <- liftIO $ mapM newIORef values
-                                   liftIO $ newIORef $ zip names vars
+-- Create a new environment with bound variables
+letVars :: [String] -> [Expr] -> IOThrowsError Env
+letVars names values = do vars <- liftIO $ mapM newIORef values
+                          liftIO $ newIORef $ zip names vars
 
 -- Create a function
-lambda :: [Env] -> [Expr] -> [Expr] -> ThrowsError Expr
-lambda env formals body =
-    do argNames <- mapM getSymbol formals
-       return $ Function env argNames body
+lambda :: [Env] -> [Expr] -> (Maybe Expr) -> [Expr] -> ThrowsError Expr
+lambda env args varargs body =
+    do argNames <- mapM getSymbol args
+       vaName <- maybe (return Nothing) (getSymbol >=> return . Just) varargs
+       return $ Function env argNames vaName body
     where getSymbol (Symbol argName) = return argName
-          getSymbol _ = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ List formals
+          getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ notSymbol
 
 
 -- Create an empty environment
@@ -120,6 +126,10 @@ testExpressions =                           -- Expected result
      "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))",    -- #undefined
      "(f 3 4)",                             -- 10
      "(f 1 2 3)",                           -- (Number of arguments error)
+     "(define g (lambda (x y . z) z))",     -- #undefined
+     "(g 1)",                               -- (Number of arguments error)
+     "(g 1 2)",                             -- ()
+     "(g 1 2 3 4 5)",                       -- (3 4 5)
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
