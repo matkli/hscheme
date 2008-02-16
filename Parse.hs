@@ -30,9 +30,10 @@ boolean = do c <- char '#' >> oneOf "tTfF"
                            't' -> Bool True
 
 -- Identifiers
+-- This is not quite R5RS compliant
 identifier :: Parser Expr
 identifier = 
-    let initial = letter <|> oneOf "!$%&*+-./:<=>?@^_~"
+    let initial = letter <|> oneOf "!$%&*+-/:<=>?@^_~"
     in do first <- initial
           rest <- many $ initial <|> digit
           return $ Symbol $ map toLower $ first:rest
@@ -56,11 +57,16 @@ string_ = do char '\"'
                            _ -> fail "Illegal escape sequence" 
 
 -- List
+-- This handles both proper lists and dotted lists (pairs)
 list :: Parser Expr
 list = do char '(' >> spaces
           lst <- expr `sepBy` spaces 
-          spaces >> char ')'
-          return $ List lst
+          proper lst <|> dotted lst
+    where proper lst = char ')' >> (return $ List lst)
+          dotted lst = do char '.' >> spaces
+                          cdr <- expr
+                          spaces >> char ')'
+                          return $ Dotted lst cdr
 
 -- Any parser followed by optional space
 lexeme ::  GenParser Char st t -> GenParser Char st t
@@ -92,6 +98,7 @@ testExpressions =
      "()",
      "\"String with \\\"escapes\\\":\\n\\tgoes\\n\\there\"",
      " ( oddly  spaCed ( expreSSion ) ) ",
+     "(this is a dotted . list)",
      unlines ["((numbers +47 -47 0047)", 
               " (booleans #t #f #T #F)",
               " (strings \"Test\" \"asdf\")",
