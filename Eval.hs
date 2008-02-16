@@ -27,6 +27,8 @@ evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _ [Symbol "quote", expr] = return expr
 evalList env [Symbol "set!", Symbol name, expr] = eval env expr >>= setVar env name
 evalList env [Symbol "define", Symbol name, expr] = eval env expr >>= define env name
+evalList env [Symbol "if", test, cons, alt] = ifSyntax env test cons alt
+evalList env [Symbol "if", test, cons] = ifSyntax env test cons Undefined
 evalList env (Symbol "begin" : exprs) = liftM last $ mapM (eval env) exprs
 evalList env (Symbol "lambda" : List args : body) = liftThrows $ lambda env args Nothing body
 evalList env (Symbol "lambda" : Dotted args varargs : body) = liftThrows $ lambda env args (Just varargs) body
@@ -99,6 +101,13 @@ lambda env args varargs body =
     where getSymbol (Symbol argName) = return argName
           getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ notSymbol
 
+-- if-syntax
+ifSyntax :: [Env] -> Expr -> Expr -> Expr -> IOThrowsError Expr
+ifSyntax env test cons alt =
+    do res <- (eval env test)
+       case res of
+            Bool False -> eval env alt
+            _ -> eval env cons
 
 -- Create an empty environment
 nullEnv :: IO Env
@@ -121,6 +130,7 @@ testExpressions =                           -- Expected result
      "(< 1 2 1 2)",                         -- #f
      "(<= 1 1 2 2 3 3)",                    -- #t
      "(= 4 4 4 4)",                         -- #t
+     "(if (< 1 2) #t #f)",                  -- #t
      "(define a 4)",                        -- #undefined
      "a",                                   -- 4
      "(set! a (+ 1 1))",                    -- #undefined
