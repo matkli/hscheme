@@ -117,6 +117,10 @@ testExpressions =                           -- Expected result
      "(+)",                                 -- 0
      "(*)",                                 -- 1
      "+",                                   -- #primitive +
+     "(< 1 2 3 4)",                         -- #t
+     "(< 1 2 1 2)",                         -- #f
+     "(<= 1 1 2 2 3 3)",                    -- #t
+     "(= 4 4 4 4)",                         -- #t
      "(define a 4)",                        -- #undefined
      "a",                                   -- 4
      "(set! a (+ 1 1))",                    -- #undefined

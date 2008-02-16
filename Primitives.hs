@@ -17,9 +17,14 @@ import Types
 primitives :: [(String, PrimitiveFunction)]
 primitives =
     [("+", numericFoldOp (+) 0),
-     ("*", numericFoldOp (*) 1),
      ("-", minus),
-     ("quotient", numericBinOp quot)]
+     ("*", numericFoldOp (*) 1),
+     ("quotient", numericBinOp quot),
+     ("=", numericCompare (==)),
+     ("<", numericCompare (<)),
+     (">", numericCompare (>)),
+     ("<=", numericCompare (<=)),
+     (">=", numericCompare (>=))]
 
 
 -- Get an environment with primitive functions defined
@@ -28,6 +33,15 @@ getPrimitiveEnv =
     mapM addBinding primitives >>= newIORef
     where addBinding (name, func) = do f <- newIORef $ PrimFunc name func
                                        return (name, f)
+
+-----------------------
+-- Numerical operations
+-----------------------
+
+-- Get a number (or throw an error)
+getNumber :: Expr -> IOThrowsError Integer
+getNumber (Number x) = return x
+getNumber notNumber = throwError $ TypeError "Integer" notNumber
 
 -- Create numerical fold operators
 numericFoldOp :: (Integer -> Integer -> Integer) -> Integer -> PrimitiveFunction
@@ -46,8 +60,11 @@ minus [] = throwError $ NumArgs 1 []
 minus (x:[]) = getNumber x >>= return . Number . negate
 minus (x:xs) = getNumber x >>= \num -> numericFoldOp (-) num xs
 
--- Get a number (or throw an error)
-getNumber :: Expr -> IOThrowsError Integer
-getNumber (Number x) = return x
-getNumber notNumber = throwError $ TypeError "Integer" notNumber
+-- Numerical comparisons
+numericCompare :: (Integer -> Integer -> Bool) -> PrimitiveFunction
+numericCompare func args =
+    do nums <- mapM getNumber args
+       return $ Bool $ foldr (\(x,y) -> (&& func x y)) 
+                                        True 
+                                        (zipWith (,) nums $ tail nums)
 
