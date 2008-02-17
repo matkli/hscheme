@@ -27,6 +27,7 @@ evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _ [Symbol "quote", expr] = return expr
 evalList env [Symbol "set!", Symbol name, expr] = eval env expr >>= setVar env name
 evalList env [Symbol "define", Symbol name, expr] = eval env expr >>= define env name
+evalList env (Symbol "define" : header : body) = defineFun env header body
 evalList env [Symbol "if", test, cons, alt] = ifSyntax env test cons alt
 evalList env [Symbol "if", test, cons] = ifSyntax env test cons Undefined
 evalList env (Symbol "begin" : exprs) = liftM last $ mapM (eval env) exprs
@@ -87,6 +88,16 @@ define env name val =
                              modifyIORef (head env) ((name,var):)
                              return Undefined
 
+-- defineFun
+defineFun :: [Env] -> Expr -> [Expr] -> IOThrowsError Expr
+defineFun env (List (Symbol name : args)) body =
+    do val <- liftThrows $ lambda env args Nothing body
+       define env name val
+defineFun env (Dotted (Symbol name : args) varArgs) body = 
+    do val <- liftThrows $ lambda env args (Just varArgs) body
+       define env name val
+defineFun _ header _ = throwError $ BadSpecialForm "Badly formed define header" $ header
+
 -- Create a new environment with bound variables
 letVars :: [String] -> [Expr] -> IOThrowsError Env
 letVars names values = do vars <- liftIO $ mapM newIORef values
@@ -94,6 +105,7 @@ letVars names values = do vars <- liftIO $ mapM newIORef values
 
 -- Create a function
 lambda :: [Env] -> [Expr] -> (Maybe Expr) -> [Expr] -> ThrowsError Expr
+lambda env args varargs [] = throwError $ BadSpecialForm "Empty function body" $ List []
 lambda env args varargs body =
     do argNames <- mapM getSymbol args
        vaName <- maybe (return Nothing) (getSymbol >=> return . Just) varargs
@@ -139,12 +151,16 @@ testExpressions =                           -- Expected result
      "(begin (+ 1 2) (define q 3) (- 10 q))",   -- 7
      "(lambda (x y) (+ x y))",              -- (lambda (x y) ...)
      "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))",    -- #undefined
+     "(define (f2 x y) (define a (* 2 x)) (+ a y))",   -- #undefined
      "(f 3 4)",                             -- 10
      "(f 1 2 3)",                           -- (Number of arguments error)
+     "(f2 3 4)",                            -- 10
      "(define g (lambda (x y . z) z))",     -- #undefined
      "(g 1)",                               -- (Number of arguments error)
      "(g 1 2)",                             -- ()
      "(g 1 2 3 4 5)",                       -- (3 4 5)
+     "(lambda () )",                        -- Empty body
+     "(define () (+ 3 4))",                 -- Bad special form
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)
