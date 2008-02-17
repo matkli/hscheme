@@ -56,6 +56,12 @@ string_ = do char '\"'
                            'n' -> return '\n'
                            _ -> fail "Illegal escape sequence" 
 
+-- Quoted expressions
+quoted :: Parser Expr
+quoted = do char '\'' >> spaces
+            e <- expr
+            return $ List [Symbol "quote", e]
+
 -- List
 -- This handles both proper lists and dotted lists (pairs)
 list :: Parser Expr
@@ -80,6 +86,7 @@ expr = (lexeme $ (try number)
               <|> boolean
               <|> string_
               <|> identifier
+              <|> quoted
               <|> list)
 
 -- Read a scheme expression and print it's representation
