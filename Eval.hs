@@ -159,8 +159,15 @@ testExpressions =                           -- Expected result
      "(g 1)",                               -- (Number of arguments error)
      "(g 1 2)",                             -- ()
      "(g 1 2 3 4 5)",                       -- (3 4 5)
-     "(lambda () )",                        -- Empty body
-     "(define () (+ 3 4))",                 -- Bad special form
+     "(define p (cons 'a 'b))",             -- #undefined
+     "(cons 'x p)",                         -- (x a . b)
+     "(car p)",                             -- a
+     "(cdr p)",                             -- b
+     "(car (cdr '(1 2 3)))",                -- 2
+     "(car '())",                           -- (Type error)
+     "(cdr 1 2 3)",                         -- (Number of arguments error)
+     "(lambda () )",                        -- (Empty body)
+     "(define () (+ 3 4))",                 -- (Bad special form)
      "unboundVar",                          -- (Unbound variable error)
      "(+ 4 #t)",                            -- (Type error) 
      "(quotient 1 2 3)",                    -- (Number of arguments error)

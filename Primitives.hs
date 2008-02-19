@@ -24,7 +24,10 @@ primitives =
      ("<", numericCompare (<)),
      (">", numericCompare (>)),
      ("<=", numericCompare (<=)),
-     (">=", numericCompare (>=))]
+     (">=", numericCompare (>=)),
+     ("car", car),
+     ("cdr", cdr),
+     ("cons", cons)]
 
 
 -- Get an environment with primitive functions defined
@@ -67,4 +70,32 @@ numericCompare func args =
        return $ Bool $ foldr (\(x,y) -> (&& func x y)) 
                                         True 
                                         (zipWith (,) nums $ tail nums)
+
+------------------
+-- List operations
+------------------
+
+-- car - First element of list or pair
+car :: PrimitiveFunction
+car [List (x:xs)] = return x
+car [Dotted (x:xs) _] = return x
+car [List []] = throwError $ TypeError "List" $ List []
+car [noList] = throwError $ TypeError "List" noList
+car args = throwError $ NumArgs 1 args
+
+-- cdr - Tail of list or second element of pair
+cdr :: PrimitiveFunction
+cdr [List (x:xs)] = return $ List xs
+cdr [Dotted [x] y] = return y
+cdr [Dotted (x:xs) y] = return $ Dotted xs y
+cdr [List []] = throwError $ TypeError "List" $ List []
+cdr [noList] = throwError $ TypeError "List" $ noList
+cdr args = throwError $ NumArgs 1 args
+
+-- cons - Create a pair or add to list
+cons :: PrimitiveFunction
+cons [x, List xs] = return $ List (x:xs)
+cons [x, Dotted xs y] = return $ Dotted (x:xs) y
+cons [x, y] = return $ Dotted [x] y
+cons args = throwError $ NumArgs 2 args
 
