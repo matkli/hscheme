@@ -58,20 +58,20 @@ string_ = do char '\"'
 
 -- Quoted expressions
 quoted :: Parser Expr
-quoted = do char '\'' >> whiteSpace
+quoted = do lexeme $ char '\''
             e <- expr
             return $ List [Symbol "quote", e]
 
 -- List
 -- This handles both proper lists and dotted lists (pairs)
 list :: Parser Expr
-list = do char '(' >> whiteSpace
-          lst <- expr `sepBy` whiteSpace 
+list = do lexeme $ char '('
+          lst <- many expr
           proper lst <|> dotted lst
     where proper lst = char ')' >> (return $ List lst)
-          dotted lst = do char '.' >> whiteSpace
+          dotted lst = do lexeme $ char '.'
                           cdr <- expr
-                          whiteSpace >> char ')'
+                          char ')'
                           return $ Dotted lst cdr
 
 -- skip the result of a single parser

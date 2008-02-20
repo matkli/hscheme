@@ -132,7 +132,7 @@ testEval env = map (liftThrows . readExpr >=> eval env) testExpressions
 testExpressions :: [String]
 testExpressions =                           -- Expected result
     ["(quote (this is a quoted list))",     -- (this is a quoted list)
-     "'(this is also a quoted list)",       -- (this is also a quoted list)
+     "' (this is also a quoted list)",       -- (this is also a quoted list)
      "(* (- 47 11) (+ 47 11))",             -- 2088
      "(quotient 8 3)",                      -- 2
      "(- 3)",                               -- -3
