@@ -2,7 +2,7 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Parse ( readExpr, testParser ) where
+module Parse ( readExpr, readExprs, testParser ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
@@ -58,26 +58,41 @@ string_ = do char '\"'
 
 -- Quoted expressions
 quoted :: Parser Expr
-quoted = do char '\'' >> spaces
+quoted = do char '\'' >> whiteSpace
             e <- expr
             return $ List [Symbol "quote", e]
 
 -- List
 -- This handles both proper lists and dotted lists (pairs)
 list :: Parser Expr
-list = do char '(' >> spaces
-          lst <- expr `sepBy` spaces 
+list = do char '(' >> whiteSpace
+          lst <- expr `sepBy` whiteSpace 
           proper lst <|> dotted lst
     where proper lst = char ')' >> (return $ List lst)
-          dotted lst = do char '.' >> spaces
+          dotted lst = do char '.' >> whiteSpace
                           cdr <- expr
-                          spaces >> char ')'
+                          whiteSpace >> char ')'
                           return $ Dotted lst cdr
+
+-- skip the result of a single parser
+skip :: CharParser st a -> CharParser st ()
+skip = (>> return ())
+
+-- comments
+comment :: CharParser st ()
+comment = do char ';'
+             skipMany $ noneOf "\n"
+             (skip $ char '\n') <|> eof
+          <?> "comment"
+
+-- Whitespace (or comment)
+whiteSpace :: CharParser st ()
+whiteSpace = skipMany $ (skip $ space) <|> comment
 
 -- Any parser followed by optional space
 lexeme ::  GenParser Char st t -> GenParser Char st t
 lexeme parser = do p <- parser
-                   spaces
+                   whiteSpace
                    return p
 
 -- Parse a complete expression
@@ -87,13 +102,19 @@ expr = (lexeme $ (try number)
               <|> string_
               <|> identifier
               <|> quoted
-              <|> list)
+              <|> list) <?> "expression"
 
--- Read a scheme expression and print it's representation
-readExpr :: String -> ThrowsError Expr
-readExpr str = case parse (spaces >> expr) "" str of
+-- Read scheme expressions
+readExprs :: String -> ThrowsError [Expr]
+readExprs str = case parse (whiteSpace >> (many $ whiteSpace >> expr)) "" str of
                     Left err -> throwError $ ParseError err
                     Right val -> return val
+
+-- Read a _single_ expression
+readExpr :: String -> ThrowsError Expr
+readExpr = readExprs >=> checkSingle
+    where checkSingle [e] = return e
+          checkSingle exprs = throwError $ Default "A single expression was expected"
 
 -- Parser test
 testParser :: [ThrowsError Expr]

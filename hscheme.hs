@@ -24,19 +24,23 @@ main = do args <- getArgs
                _ -> runOne $ args !! 0
 
 -- Evaluate a string
-evalString :: [Env] -> String -> IO String
+evalString :: [Env] -> String -> IO ()
 evalString env expr = 
-    liftM showEither $ runErrorT $ (liftThrows $ readExpr expr) >>= eval env
+    do evaled <- runErrorT $ (liftThrows $ readExprs expr) >>= mapM (eval env)
+       case evaled of
+            Left err -> putStrLn $ show err
+            Right [] -> return ()
+            Right vals -> mapM_ (putStrLn . show) vals
 
 -- runOne
 runOne :: String -> IO ()
-runOne expr = getTopEnv >>= flip evalString expr >>= putStrLn
+runOne expr = getTopEnv >>= flip evalString expr
 
 -- Run simple read-eval-print loop
 readEvalPrint :: [Env] -> IO ()
 readEvalPrint env = do putStr prompt >> hFlush stdout
                        ln <- getLine
-                       evalString env ln >>= putStrLn
+                       evalString env ln
 
 -- prompt
 prompt :: String
