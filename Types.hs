@@ -49,7 +49,7 @@ showExpr (Bool False) = "#f"
 showExpr (String str) = "\"" ++ str ++ "\""
 showExpr (List xs) = showListParen xs
 showExpr (Dotted xs cdr) = showDotted xs cdr
-showExpr (PrimFunc name _) = "#primitive " ++ name
+showExpr (PrimFunc name _) = "#<primitive-procedure " ++ name ++ ">"
 showExpr (Function _ args varargs _) = 
     "(lambda (" ++ unwords args ++ (maybe "" (" . "++) varargs) ++ ") ...)"
 showExpr Undefined = "#undefined"

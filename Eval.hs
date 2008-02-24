@@ -138,7 +138,7 @@ testExpressions =                           -- Expected result
      "(- 3)",                               -- -3
      "(+)",                                 -- 0
      "(*)",                                 -- 1
-     "+",                                   -- #primitive +
+     "+",                                   -- #<primitive-procedure +>
      "(< 1 2 3 4)",                         -- #t
      "(< 1 2 1 2)",                         -- #f
      "(<= 1 1 2 2 3 3)",                    -- #t
