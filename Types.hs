@@ -116,8 +116,8 @@ showEither :: ThrowsError Expr -> String
 showEither (Left err) = show err
 showEither (Right val) = show val
 
--- Lift a regulare ThrowsError into IOThrowsError
+-- Lift a regular ThrowsError into IOThrowsError
 liftThrows :: ThrowsError a -> IOThrowsError a
-liftThrows (Left err) =throwError err
+liftThrows (Left err) = throwError err
 liftThrows (Right val) = return val
 
