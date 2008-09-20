@@ -13,3 +13,6 @@ tags
 
 # Final executable
 hscheme
+
+# Cabal build directory
+dist/*

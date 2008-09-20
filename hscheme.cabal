@@ -1,0 +1,12 @@
+Name:               hscheme
+Version:            0.1
+Synopsis:           Simple Scheme interpreter written in Haskell
+Description:        Simple Scheme interpreter written in Haskell
+License:            GPL
+Author:             Mats Klingberg
+Maintainer:         Mats Klingberg <mats.klingberg@bredband.net>
+Build-Depends:      base, haskell98, mtl, parsec
+Build-Type:         Simple
+
+Executable:         hscheme
+Main-is:            hscheme.hs
