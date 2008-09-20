@@ -1,4 +1,4 @@
-Name:               hscheme
+Name:               haskell-scheme
 Version:            0.1
 Synopsis:           Simple Scheme interpreter written in Haskell
 Description:        Simple Scheme interpreter written in Haskell
