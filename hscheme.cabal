@@ -9,4 +9,4 @@ Build-Depends:      base, haskell98, mtl, parsec
 Build-Type:         Simple
 
 Executable:         hscheme
-Main-is:            hscheme.hs
+Main-is:            HScheme.hs
