@@ -2,7 +2,9 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Primitives ( getPrimitiveEnv ) where
+module Primitives (
+      getPrimitiveEnv
+    ) where
 
 -- System imports
 import Data.List

@@ -2,7 +2,11 @@
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Parse ( readExpr, readExprs, testParser ) where
+module Parse (
+      readExpr
+    , readExprs
+    , testParser
+    ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec

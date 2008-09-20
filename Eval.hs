@@ -1,8 +1,12 @@
--- Eval: Eavluate scheme expressions
+-- Eval: Evaluate scheme expressions
 --
 -- Copyright (C) 2008 Mats Klingberg
 
-module Eval( eval, testEval, nullEnv ) where
+module Eval (
+      eval
+    , testEval
+    , nullEnv
+    ) where
 
 -- System imports
 import Control.Monad.Error
