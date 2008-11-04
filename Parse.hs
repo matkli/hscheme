@@ -3,10 +3,10 @@
 -- Copyright (C) 2008 Mats Klingberg
 
 module Parse (
-      readExpr
-    , readExprs
-    , testParser
-    ) where
+    readExpr,
+    readExprs,
+    testParser
+  ) where
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
@@ -125,14 +125,15 @@ testParser :: [ThrowsError Expr]
 testParser = map readExpr testExpressions
 
 testExpressions :: [String]
-testExpressions = 
-    ["+47",
-     "()",
-     "\"String with \\\"escapes\\\":\\n\\tgoes\\n\\there\"",
-     " ( oddly  spaCed ( expreSSion ) ) ",
-     "(this is a dotted . list)",
-     unlines ["((numbers +47 -47 0047)", 
-              " (booleans #t #f #T #F)",
-              " (strings \"Test\" \"asdf\")",
-              " (symbols a b c))"],
-     "(parse error #a)"]
+testExpressions = [
+    "+47",
+    "()",
+    "\"String with \\\"escapes\\\":\\n\\tgoes\\n\\there\"",
+    " ( oddly  spaCed ( expreSSion ) ) ",
+    "(this is a dotted . list)",
+    unlines ["((numbers +47 -47 0047)", 
+             " (booleans #t #f #T #F)",
+             " (strings \"Test\" \"asdf\")",
+             " (symbols a b c))"],
+    "(parse error #a)"
+  ]

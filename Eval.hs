@@ -3,10 +3,10 @@
 -- Copyright (C) 2008 Mats Klingberg
 
 module Eval (
-      eval
-    , testEval
-    , nullEnv
-    ) where
+    eval,
+    testEval,
+    nullEnv
+  ) where
 
 -- System imports
 import Control.Monad.Error
@@ -28,7 +28,7 @@ eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
 -- Evaluate a list
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
-evalList _ [Symbol "quote", expr] = return expr
+evalList _   [Symbol "quote", expr] = return expr
 evalList env [Symbol "set!", Symbol name, expr] = eval env expr >>= setVar env name
 evalList env [Symbol "define", Symbol name, expr] = eval env expr >>= define env name
 evalList env (Symbol "define" : header : body) = defineFun env header body
@@ -134,47 +134,48 @@ testEval :: [Env] -> [IOThrowsError Expr]
 testEval env = map (liftThrows . readExpr >=> eval env) testExpressions
 
 testExpressions :: [String]
-testExpressions =                           -- Expected result
-    ["(quote (this is a quoted list))",     -- (this is a quoted list)
-     "' (this is also a quoted list)",       -- (this is also a quoted list)
-     "(* (- 47 11) (+ 47 11))",             -- 2088
-     "(quotient 8 3)",                      -- 2
-     "(- 3)",                               -- -3
-     "(+)",                                 -- 0
-     "(*)",                                 -- 1
-     "+",                                   -- #<primitive-procedure +>
-     "(< 1 2 3 4)",                         -- #t
-     "(< 1 2 1 2)",                         -- #f
-     "(<= 1 1 2 2 3 3)",                    -- #t
-     "(= 4 4 4 4)",                         -- #t
-     "(if (< 1 2) #t #f)",                  -- #t
-     "(define a 4)",                        -- #undefined
-     "a",                                   -- 4
-     "(set! a (+ 1 1))",                    -- #undefined
-     "a",                                   -- 2
-     "(begin (+ 1 2) (define q 3) (- 10 q))",   -- 7
-     "(lambda (x y) (+ x y))",              -- (lambda (x y) ...)
-     "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))",    -- #undefined
-     "(define (f2 x y) (define a (* 2 x)) (+ a y))",   -- #undefined
-     "(f 3 4)",                             -- 10
-     "(f 1 2 3)",                           -- (Number of arguments error)
-     "(f2 3 4)",                            -- 10
-     "(define g (lambda (x y . z) z))",     -- #undefined
-     "(g 1)",                               -- (Number of arguments error)
-     "(g 1 2)",                             -- ()
-     "(g 1 2 3 4 5)",                       -- (3 4 5)
-     "(define p (cons 'a 'b))",             -- #undefined
-     "(cons 'x p)",                         -- (x a . b)
-     "(car p)",                             -- a
-     "(cdr p)",                             -- b
-     "(car (cdr '(1 2 3)))",                -- 2
-     "(car '())",                           -- (Type error)
-     "(cdr 1 2 3)",                         -- (Number of arguments error)
-     "(lambda () )",                        -- (Empty body)
-     "(define () (+ 3 4))",                 -- (Bad special form)
-     "unboundVar",                          -- (Unbound variable error)
-     "(+ 4 #t)",                            -- (Type error) 
-     "(quotient 1 2 3)",                    -- (Number of arguments error)
-     "(1 2 3)",                             -- (Not a funciton error)
-     "#a"]                                  -- (Parse error)
+testExpressions = [                     -- Expected result
+    "(quote (this is a quoted list))",  -- (this is a quoted list)
+    "' (this is also a quoted list)",   -- (this is also a quoted list)
+    "(* (- 47 11) (+ 47 11))",          -- 2088
+    "(quotient 8 3)",                   -- 2
+    "(- 3)",                            -- -3
+    "(+)",                              -- 0
+    "(*)",                              -- 1
+    "+",                                -- #<primitive-procedure +>
+    "(< 1 2 3 4)",                      -- #t
+    "(< 1 2 1 2)",                      -- #f
+    "(<= 1 1 2 2 3 3)",                 -- #t
+    "(= 4 4 4 4)",                      -- #t
+    "(if (< 1 2) #t #f)",               -- #t
+    "(define a 4)",                     -- #undefined
+    "a",                                -- 4
+    "(set! a (+ 1 1))",                 -- #undefined
+    "a",                                -- 2
+    "(begin (+ 1 2) (define q 3) (- 10 q))", -- 7
+    "(lambda (x y) (+ x y))",                -- (lambda (x y) ...)
+    "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))", -- #undefined
+    "(define (f2 x y) (define a (* 2 x)) (+ a y))",         -- #undefined
+    "(f 3 4)",                          -- 10
+    "(f 1 2 3)",                        -- (Number of arguments error)
+    "(f2 3 4)",                         -- 10
+    "(define g (lambda (x y . z) z))",  -- #undefined
+    "(g 1)",                            -- (Number of arguments error)
+    "(g 1 2)",                          -- ()
+    "(g 1 2 3 4 5)",                    -- (3 4 5)
+    "(define p (cons 'a 'b))",          -- #undefined
+    "(cons 'x p)",                      -- (x a . b)
+    "(car p)",                          -- a
+    "(cdr p)",                          -- b
+    "(car (cdr '(1 2 3)))",             -- 2
+    "(car '())",                        -- (Type error)
+    "(cdr 1 2 3)",                      -- (Number of arguments error)
+    "(lambda () )",                     -- (Empty body)
+    "(define () (+ 3 4))",              -- (Bad special form)
+    "unboundVar",                       -- (Unbound variable error)
+    "(+ 4 #t)",                         -- (Type error) 
+    "(quotient 1 2 3)",                 -- (Number of arguments error)
+    "(1 2 3)",                          -- (Not a funciton error)
+    "#a"                                -- (Parse error)
+  ]
 

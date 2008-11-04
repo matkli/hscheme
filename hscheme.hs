@@ -6,7 +6,7 @@ module Main where
 
 -- Standard imports
 import System.Environment
-import IO
+import System.IO
 import Control.Monad.Error
 
 -- hscheme imports

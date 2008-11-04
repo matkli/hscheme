@@ -3,8 +3,8 @@
 -- Copyright (C) 2008 Mats Klingberg
 
 module Primitives (
-      getPrimitiveEnv
-    ) where
+    getPrimitiveEnv
+  ) where
 
 -- System imports
 import Data.List
@@ -17,19 +17,20 @@ import Types
 
 -- List of primitive functions
 primitives :: [(String, PrimitiveFunction)]
-primitives =
-    [("+", numericFoldOp (+) 0),
-     ("-", minus),
-     ("*", numericFoldOp (*) 1),
-     ("quotient", numericBinOp quot),
-     ("=", numericCompare (==)),
-     ("<", numericCompare (<)),
-     (">", numericCompare (>)),
-     ("<=", numericCompare (<=)),
-     (">=", numericCompare (>=)),
-     ("car", car),
-     ("cdr", cdr),
-     ("cons", cons)]
+primitives = [
+    ("+", numericFoldOp (+) 0),
+    ("-", minus),
+    ("*", numericFoldOp (*) 1),
+    ("quotient", numericBinOp quot),
+    ("=", numericCompare (==)),
+    ("<", numericCompare (<)),
+    (">", numericCompare (>)),
+    ("<=", numericCompare (<=)),
+    (">=", numericCompare (>=)),
+    ("car", car),
+    ("cdr", cdr),
+    ("cons", cons)
+  ]
 
 
 -- Get an environment with primitive functions defined

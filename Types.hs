@@ -3,16 +3,16 @@
 -- Copyright (C) 2008 Mats Klingberg
 
 module Types (
-      Env
-    , Expr(..)
-    , PrimitiveFunction
-    , SchemeError(..)
-    , ThrowsError
-    , IOThrowsError
-    , showEither
-    , liftThrows
-    , testExpr
-    ) where 
+    Env,
+    Expr(..),
+    PrimitiveFunction,
+    SchemeError(..),
+    ThrowsError,
+    IOThrowsError,
+    showEither,
+    liftThrows,
+    testExpr
+  ) where 
 
 -- System imports
 import Text.ParserCombinators.Parsec ( ParseError )
