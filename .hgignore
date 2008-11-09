@@ -16,3 +16,6 @@ hscheme
 
 # Cabal build directory
 dist/*
+
+# Documentation
+doc/*
