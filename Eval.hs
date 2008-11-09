@@ -1,4 +1,4 @@
--- Eval: Evaluate scheme expressions
+-- | Module for evaluating scheme expressions
 --
 -- Copyright (C) 2008 Mats Klingberg
 
@@ -16,8 +16,7 @@ import Data.IORef
 import Types
 import Parse (readExpr)
 
--- eval
--- Evaluate a scheme expression in a closure
+-- |Evaluate a scheme expression in a closure
 eval :: [Env] -> Expr -> IOThrowsError Expr
 eval env (Symbol sym) = getVar env sym  -- lookup variable
 eval _ val@(Number _) = return val      -- Number evaluate to themselves
@@ -142,28 +141,28 @@ testExpressions = [                     -- Expected result
     "(- 3)",                            -- -3
     "(+)",                              -- 0
     "(*)",                              -- 1
-    "+",                                -- #<primitive-procedure +>
-    "(< 1 2 3 4)",                      -- #t
-    "(< 1 2 1 2)",                      -- #f
-    "(<= 1 1 2 2 3 3)",                 -- #t
-    "(= 4 4 4 4)",                      -- #t
-    "(if (< 1 2) #t #f)",               -- #t
-    "(define a 4)",                     -- #undefined
+    "+",                                -- \#<primitive-procedure +>
+    "(< 1 2 3 4)",                      -- \#t
+    "(< 1 2 1 2)",                      -- \#f
+    "(<= 1 1 2 2 3 3)",                 -- \#t
+    "(= 4 4 4 4)",                      -- \#t
+    "(if (< 1 2) #t #f)",               -- \#t
+    "(define a 4)",                     -- \#undefined
     "a",                                -- 4
-    "(set! a (+ 1 1))",                 -- #undefined
+    "(set! a (+ 1 1))",                 -- \#undefined
     "a",                                -- 2
     "(begin (+ 1 2) (define q 3) (- 10 q))", -- 7
     "(lambda (x y) (+ x y))",                -- (lambda (x y) ...)
-    "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))", -- #undefined
-    "(define (f2 x y) (define a (* 2 x)) (+ a y))",         -- #undefined
+    "(define f (lambda (x y) (define a (* 2 x)) (+ a y)))", -- \#undefined
+    "(define (f2 x y) (define a (* 2 x)) (+ a y))",         -- \#undefined
     "(f 3 4)",                          -- 10
     "(f 1 2 3)",                        -- (Number of arguments error)
     "(f2 3 4)",                         -- 10
-    "(define g (lambda (x y . z) z))",  -- #undefined
+    "(define g (lambda (x y . z) z))",  -- \#undefined
     "(g 1)",                            -- (Number of arguments error)
     "(g 1 2)",                          -- ()
     "(g 1 2 3 4 5)",                    -- (3 4 5)
-    "(define p (cons 'a 'b))",          -- #undefined
+    "(define p (cons 'a 'b))",          -- \#undefined
     "(cons 'x p)",                      -- (x a . b)
     "(car p)",                          -- a
     "(cdr p)",                          -- b

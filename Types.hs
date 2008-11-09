@@ -26,15 +26,15 @@ type Env = IORef [(String, IORef Expr)]
 -- Type for storing a scheme expression
 ---------------------------------------
 
-data Expr = Symbol String           -- Scheme symbol
-          | Number Integer          -- We only support integers so far       
-          | Bool Bool               -- Booleans
-          | String String           -- String ("asdf")
-          | List [Expr]             -- "Proper" lists (i.e null-terminated)
-          | Dotted [Expr] Expr      -- "Dotted" lists (or pairs)
-          | PrimFunc String PrimitiveFunction -- Primitive function
-          | Function [Env] [String] (Maybe String) [Expr]    -- Scheme function
-          | Undefined               -- Return from e.g. set
+data Expr = Symbol String           -- ^ Scheme symbol
+          | Number Integer          -- ^ We only support integers so far       
+          | Bool Bool               -- ^ Booleans
+          | String String           -- ^ String ("asdf")
+          | List [Expr]             -- ^ "Proper" lists (i.e null-terminated)
+          | Dotted [Expr] Expr      -- ^ "Dotted" lists (or pairs)
+          | PrimFunc String PrimitiveFunction -- ^ Primitive function
+          | Function [Env] [String] (Maybe String) [Expr]    -- ^ Scheme function
+          | Undefined               -- ^ Return from e.g. set
 
 instance Show Expr where show = showExpr
 
