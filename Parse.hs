@@ -1,4 +1,4 @@
--- Parse: Scheme parser module
+-- | Scheme parser module.
 --
 -- Copyright (C) 2008 Mats Klingberg
 
@@ -16,8 +16,9 @@ import Char
 -- Local imports
 import Types
 
--- Numerical literals
--- Only integers so far
+-- | Numerical literals
+--
+-- Only integers so far.
 number :: Parser Expr
 number = do sign <- option '+' $ oneOf "+-"
             rest <- many1 digit
@@ -26,15 +27,16 @@ number = do sign <- option '+' $ oneOf "+-"
                                  then read rest
                                  else read (sign:rest)
 
--- Boolean literals
+-- | Boolean literals
 boolean :: Parser Expr
 boolean = do c <- char '#' >> oneOf "tTfF"
              return $ case (toLower c) of
                            'f' -> Bool False
                            't' -> Bool True
 
--- Identifiers
--- This is not quite R5RS compliant
+-- | Identifiers
+--
+-- This is not quite R5RS compliant.
 identifier :: Parser Expr
 identifier = 
     let initial = letter <|> oneOf "!$%&*+-/:<=>?@^_~"
@@ -42,7 +44,7 @@ identifier =
           rest <- many $ initial <|> digit
           return $ Symbol $ map toLower $ first:rest
 
--- Strings
+-- | Strings
 string_ :: Parser Expr
 string_ = do char '\"'
              s <- many $ escape <|> noneOf "\""
@@ -60,14 +62,15 @@ string_ = do char '\"'
                            'n' -> return '\n'
                            _ -> fail "Illegal escape sequence" 
 
--- Quoted expressions
+-- | Quoted expressions
 quoted :: Parser Expr
 quoted = do lexeme $ char '\''
             e <- expr
             return $ List [Symbol "quote", e]
 
--- List
--- This handles both proper lists and dotted lists (pairs)
+-- | Lists
+--
+-- This handles both proper lists and dotted lists (pairs).
 list :: Parser Expr
 list = do lexeme $ char '('
           lst <- many expr
@@ -78,28 +81,28 @@ list = do lexeme $ char '('
                           char ')'
                           return $ Dotted lst cdr
 
--- skip the result of a single parser
+-- | Skip the result of a single parser.
 skip :: CharParser st a -> CharParser st ()
 skip = (>> return ())
 
--- comments
+-- | Comments
 comment :: CharParser st ()
 comment = do char ';'
              skipMany $ noneOf "\n"
              (skip $ char '\n') <|> eof
           <?> "comment"
 
--- Whitespace (or comment)
+-- | Whitespace (or comment)
 whiteSpace :: CharParser st ()
 whiteSpace = skipMany $ (skip $ space) <|> comment
 
--- Any parser followed by optional space
+-- | Any parser followed by optional space.
 lexeme ::  GenParser Char st t -> GenParser Char st t
 lexeme parser = do p <- parser
                    whiteSpace
                    return p
 
--- Parse a complete expression
+-- | Parse a complete expression.
 expr :: Parser Expr
 expr = (lexeme $ (try number)
               <|> boolean
@@ -108,22 +111,23 @@ expr = (lexeme $ (try number)
               <|> quoted
               <|> list) <?> "expression"
 
--- Read scheme expressions
+-- | Read (possibly multiple) scheme expressions
 readExprs :: String -> ThrowsError [Expr]
 readExprs str = case parse (whiteSpace >> (many $ whiteSpace >> expr)) "" str of
                     Left err -> throwError $ ParseError err
                     Right val -> return val
 
--- Read a _single_ expression
+-- | Read a /single/ scheme expression.
 readExpr :: String -> ThrowsError Expr
 readExpr = readExprs >=> checkSingle
     where checkSingle [e] = return e
           checkSingle exprs = throwError $ Default "A single expression was expected"
 
--- Parser test
+-- | Test parser
 testParser :: [ThrowsError Expr]
 testParser = map readExpr testExpressions
 
+-- | Parser test expressions
 testExpressions :: [String]
 testExpressions = [
     "+47",

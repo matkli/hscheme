@@ -1,9 +1,21 @@
--- Primitives: Primitive function definitions for HScheme
+-- | Primitive function definitions for HScheme.
 --
 -- Copyright (C) 2008 Mats Klingberg
 
 module Primitives (
+    -- * Exported Haskell functions
     getPrimitiveEnv
+
+    -- * Primitive Scheme functions
+
+    -- ** Numerical operations
+    -- $numops
+
+    -- ** Numerical comparisons
+    -- $numcomp
+
+    -- ** List operations
+    -- $listops
   ) where
 
 -- System imports
@@ -14,8 +26,42 @@ import Data.IORef
 -- Local imports
 import Types
 
+-- $numops
+-- The following binary numerical operations are supported:
+--
+-- [@+@] addition
+--
+-- [@-@] subtraction
+--
+-- [@*@] multiplication
+--
+-- [@quotient@] Integer division
 
--- List of primitive functions
+-- $numcomp
+-- The basic primitive funcitons for comparing numbers (all are binary):
+--
+-- [@=@] Test for numeric equality
+--
+-- [@<@] Less than
+--
+-- [@>@] Greater than
+--
+-- [@<=@] Less than or equal
+--
+-- [@>=@] Greater than or equal
+
+-- $listops
+-- Basic list primitives:
+--
+-- [@car@] Return the first element of a pair (or the head of a list).
+--
+-- [@cdr@] Return the second element of a pair (or the tail of a list).
+--
+-- [@cons@] Create a new pair from two elements. If the second element is a
+-- pair itself, the new structure is called a list.
+
+
+-- | List of primitive functions
 primitives :: [(String, PrimitiveFunction)]
 primitives = [
     ("+", numericFoldOp (+) 0),
@@ -33,7 +79,7 @@ primitives = [
   ]
 
 
--- Get an environment with primitive functions defined
+-- | Get an environment with primitive functions defined.
 getPrimitiveEnv :: IO Env
 getPrimitiveEnv = 
     mapM addBinding primitives >>= newIORef
@@ -44,21 +90,22 @@ getPrimitiveEnv =
 -- Numerical operations
 -----------------------
 
--- Get a number (or throw an error)
+-- | Get a number (or throw an error)
 getNumber :: Expr -> IOThrowsError Integer
 getNumber (Number x) = return x
 getNumber notNumber = throwError $ TypeError "Integer" notNumber
 
--- Create numerical fold operators
+-- | Create numerical fold operators
 numericFoldOp :: (Integer -> Integer -> Integer) -> Integer -> PrimitiveFunction
 numericFoldOp func start args = (mapM getNumber args) >>= return . Number . foldl' func start
 
--- Create numerical binary operators
+-- | Create numerical binary operators
 numericBinOp :: (Integer -> Integer -> Integer) -> PrimitiveFunction
 numericBinOp func (a:b:[]) = liftM2 (\x y -> Number $ func x y) (getNumber a) (getNumber b)
 numericBinOp _ args = throwError $ NumArgs 2 args
 
--- Minus
+-- | Subtraction
+--
 -- This is a little special since a unary minus should negate it's argument,
 -- while binary (or m-ary) minus should subtract _from_ it's first argument.
 minus :: PrimitiveFunction
@@ -66,7 +113,7 @@ minus [] = throwError $ NumArgs 1 []
 minus (x:[]) = getNumber x >>= return . Number . negate
 minus (x:xs) = getNumber x >>= \num -> numericFoldOp (-) num xs
 
--- Numerical comparisons
+-- | Numerical comparisons
 numericCompare :: (Integer -> Integer -> Bool) -> PrimitiveFunction
 numericCompare func args =
     do nums <- mapM getNumber args
@@ -78,7 +125,7 @@ numericCompare func args =
 -- List operations
 ------------------
 
--- car - First element of list or pair
+-- | First element of list or pair
 car :: PrimitiveFunction
 car [List (x:xs)] = return x
 car [Dotted (x:xs) _] = return x
@@ -86,7 +133,7 @@ car [List []] = throwError $ TypeError "List" $ List []
 car [noList] = throwError $ TypeError "List" noList
 car args = throwError $ NumArgs 1 args
 
--- cdr - Tail of list or second element of pair
+-- | Tail of list or second element of pair
 cdr :: PrimitiveFunction
 cdr [List (x:xs)] = return $ List xs
 cdr [Dotted [x] y] = return y
@@ -95,7 +142,7 @@ cdr [List []] = throwError $ TypeError "List" $ List []
 cdr [noList] = throwError $ TypeError "List" $ noList
 cdr args = throwError $ NumArgs 1 args
 
--- cons - Create a pair or add to list
+-- | Create a pair or add a new head to list
 cons :: PrimitiveFunction
 cons [x, List xs] = return $ List (x:xs)
 cons [x, Dotted xs y] = return $ Dotted (x:xs) y

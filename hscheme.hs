@@ -1,4 +1,4 @@
--- hscheme: A scheme interpreter written in Haskell
+-- | HScheme: A scheme interpreter written in Haskell.
 --
 -- Copyright (C) 2008 Mats Klingberg
 
@@ -15,7 +15,7 @@ import Parse
 import Eval
 import Primitives
 
-
+-- | Main program
 main :: IO ()
 main = do args <- getArgs
           case args of
@@ -23,7 +23,13 @@ main = do args <- getArgs
                ("--test":_) -> runTests
                _ -> runOne $ args !! 0
 
--- Evaluate a string
+-- | Run simple read-eval-print loop.
+readEvalPrint :: [Env] -> IO ()
+readEvalPrint env = do putStr prompt >> hFlush stdout
+                       ln <- getLine
+                       evalString env ln
+
+-- | Evaluate a scheme expression, given as a string, in an environment.
 evalString :: [Env] -> String -> IO ()
 evalString env expr = 
     do evaled <- runErrorT $ (liftThrows $ readExprs expr) >>= mapM (eval env)
@@ -32,25 +38,19 @@ evalString env expr =
             Right [] -> return ()
             Right vals -> mapM_ (putStrLn . show) vals
 
--- runOne
+-- | Evaluate a single expression in a new top environment.
 runOne :: String -> IO ()
 runOne expr = getTopEnv >>= flip evalString expr
 
--- Run simple read-eval-print loop
-readEvalPrint :: [Env] -> IO ()
-readEvalPrint env = do putStr prompt >> hFlush stdout
-                       ln <- getLine
-                       evalString env ln
-
--- prompt
+-- | REPL prompt
 prompt :: String
 prompt = ">>> "
 
--- Top-level environment
+-- | Return a top-level environment.
 getTopEnv :: IO [Env]
 getTopEnv = getPrimitiveEnv >>= return . (:[])
 
--- Run module test cases
+-- | Run module test cases.
 runTests :: IO ()
 runTests = 
     do putStrLn "Test show:"

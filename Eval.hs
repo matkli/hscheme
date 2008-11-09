@@ -1,4 +1,4 @@
--- | Module for evaluating scheme expressions
+-- | Module for evaluating scheme expressions.
 --
 -- Copyright (C) 2008 Mats Klingberg
 
@@ -16,7 +16,7 @@ import Data.IORef
 import Types
 import Parse (readExpr)
 
--- |Evaluate a scheme expression in a closure
+-- | Evaluate a scheme expression in an environment.
 eval :: [Env] -> Expr -> IOThrowsError Expr
 eval env (Symbol sym) = getVar env sym  -- lookup variable
 eval _ val@(Number _) = return val      -- Number evaluate to themselves
@@ -25,7 +25,7 @@ eval _ val@(String _) = return val      -- Strings evaluate to themselves
 eval env (List xs) = evalList env xs
 eval _ badForm = throwError $ BadSpecialForm "Illegal expression" badForm
 
--- Evaluate a list
+-- | Evaluate a scheme list.
 evalList :: [Env] -> [Expr] -> IOThrowsError Expr
 evalList _   [Symbol "quote", expr] = return expr
 evalList env [Symbol "set!", Symbol name, expr] = eval env expr >>= setVar env name
@@ -41,7 +41,7 @@ evalList env (func:args) = do f <- eval env func
                               apply f a
 evalList _ badForm = throwError $ BadSpecialForm "Illegal expression" $ List badForm
 
--- Apply a function
+-- | Apply a function.
 apply :: Expr -> [Expr] -> IOThrowsError Expr
 apply (PrimFunc _ func) args = func args
 apply (Function closure argNames vaName body) args =
@@ -55,12 +55,12 @@ apply (Function closure argNames vaName body) args =
                   liftM last $ mapM (eval env) body  
 apply notFunc _ = throwError $ NotFunction notFunc
 
--- Check if a variable name is bound in an environment
+-- | Check if a variable name is bound in an environment.
 isBound :: [Env] -> String -> IO Bool
 isBound [] _ = return False
 isBound (e:es) name = readIORef e >>= maybe (isBound es name) (const $ return True) . lookup name   
 
--- Lookup a name and get a reference to the expression bound to that name
+-- | Lookup a name and get a reference to the expression bound to that name.
 getRef :: [Env] -> String -> IOThrowsError (IORef Expr)
 getRef [] name = throwError $ UnboundVar name
 getRef (e:es) name = 
@@ -69,18 +69,17 @@ getRef (e:es) name =
              return 
              (lookup name bindings)
 
--- Get the value of a variable
+-- | Get the value of a variable.
 getVar :: [Env] -> String -> IOThrowsError Expr
 getVar env name = getRef env name >>= (liftIO . readIORef)
 
--- Set the value of a variable
+-- | Set the value of a variable.
 setVar :: [Env] -> String -> Expr -> IOThrowsError Expr
 setVar env name val = do ref <- getRef env name
                          liftIO $ writeIORef ref val
                          return Undefined
 
--- define
--- This will bind a variable in the innermost environment if it is not already
+-- | Bind a variable in the innermost environment if it is not already
 -- defined there. If it is defined (in the innermost environment) the behaviour
 -- is equivalent to set!
 define :: [Env] -> String -> Expr -> IOThrowsError Expr
@@ -91,7 +90,7 @@ define env name val =
                              modifyIORef (head env) ((name,var):)
                              return Undefined
 
--- defineFun
+-- | Define a new named function.
 defineFun :: [Env] -> Expr -> [Expr] -> IOThrowsError Expr
 defineFun env (List (Symbol name : args)) body =
     do val <- liftThrows $ lambda env args Nothing body
@@ -101,12 +100,12 @@ defineFun env (Dotted (Symbol name : args) varArgs) body =
        define env name val
 defineFun _ header _ = throwError $ BadSpecialForm "Badly formed define header" $ header
 
--- Create a new environment with bound variables
+-- | Create a new environment with bound variables.
 letVars :: [String] -> [Expr] -> IOThrowsError Env
 letVars names values = do vars <- liftIO $ mapM newIORef values
                           liftIO $ newIORef $ zip names vars
 
--- Create a function
+-- | Create an anonymous function.
 lambda :: [Env] -> [Expr] -> (Maybe Expr) -> [Expr] -> ThrowsError Expr
 lambda env args varargs [] = throwError $ BadSpecialForm "Empty function body" $ List []
 lambda env args varargs body =
@@ -116,7 +115,7 @@ lambda env args varargs body =
     where getSymbol (Symbol argName) = return argName
           getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ notSymbol
 
--- if-syntax
+-- | Evaluate an if-expression.
 ifSyntax :: [Env] -> Expr -> Expr -> Expr -> IOThrowsError Expr
 ifSyntax env test cons alt =
     do res <- (eval env test)
@@ -124,14 +123,15 @@ ifSyntax env test cons alt =
             Bool False -> eval env alt
             _ -> eval env cons
 
--- Create an empty environment
+-- | Return a new empty environment.
 nullEnv :: IO Env
 nullEnv = newIORef []
 
--- Test eval
+-- | Evaluate module test expressions.
 testEval :: [Env] -> [IOThrowsError Expr]
 testEval env = map (liftThrows . readExpr >=> eval env) testExpressions
 
+-- | Module test expressions.
 testExpressions :: [String]
 testExpressions = [                     -- Expected result
     "(quote (this is a quoted list))",  -- (this is a quoted list)
