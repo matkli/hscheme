@@ -11,7 +11,7 @@ module Parse (
 -- Standard imports
 import Text.ParserCombinators.Parsec
 import Control.Monad.Error
-import Char
+import Data.Char
 
 -- Local imports
 import Types
@@ -30,7 +30,7 @@ number = do sign <- option '+' $ oneOf "+-"
 -- | Boolean literals
 boolean :: Parser Expr
 boolean = do c <- char '#' >> oneOf "tTfF"
-             return $ case (toLower c) of
+             return $ case toLower c of
                            'f' -> Bool False
                            't' -> Bool True
 
@@ -75,7 +75,7 @@ list :: Parser Expr
 list = do lexeme $ char '('
           lst <- many expr
           proper lst <|> dotted lst
-    where proper lst = char ')' >> (return $ List lst)
+    where proper lst = char ')' >> return (List lst)
           dotted lst = do lexeme $ char '.'
                           cdr <- expr
                           char ')'
@@ -89,12 +89,12 @@ skip = (>> return ())
 comment :: CharParser st ()
 comment = do char ';'
              skipMany $ noneOf "\n"
-             (skip $ char '\n') <|> eof
+             skip (char '\n') <|> eof
           <?> "comment"
 
 -- | Whitespace (or comment)
 whiteSpace :: CharParser st ()
-whiteSpace = skipMany $ (skip $ space) <|> comment
+whiteSpace = skipMany $ skip space <|> comment
 
 -- | Any parser followed by optional space.
 lexeme ::  GenParser Char st t -> GenParser Char st t
@@ -104,16 +104,17 @@ lexeme parser = do p <- parser
 
 -- | Parse a complete expression.
 expr :: Parser Expr
-expr = (lexeme $ (try number)
-              <|> boolean
-              <|> string_
-              <|> identifier
-              <|> quoted
-              <|> list) <?> "expression"
+expr = lexeme (try number
+               <|> boolean
+               <|> string_
+               <|> identifier
+               <|> quoted
+               <|> list) 
+              <?> "expression"
 
 -- | Read (possibly multiple) scheme expressions
 readExprs :: String -> ThrowsError [Expr]
-readExprs str = case parse (whiteSpace >> (many $ whiteSpace >> expr)) "" str of
+readExprs str = case parse (whiteSpace >> many (whiteSpace >> expr)) "" str of
                     Left err -> throwError $ ParseError err
                     Right val -> return val
 

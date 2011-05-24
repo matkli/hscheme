@@ -21,7 +21,7 @@ main = do args <- getArgs
           case args of
                [] -> getTopEnv >>= (sequence_ . repeat . readEvalPrint)
                ("--test":_) -> runTests
-               _ -> runOne $ args !! 0
+               _ -> runOne $ head args
 
 -- | Run simple read-eval-print loop.
 readEvalPrint :: [Env] -> IO ()
@@ -32,11 +32,11 @@ readEvalPrint env = do putStr prompt >> hFlush stdout
 -- | Evaluate a scheme expression, given as a string, in an environment.
 evalString :: [Env] -> String -> IO ()
 evalString env expr = 
-    do evaled <- runErrorT $ (liftThrows $ readExprs expr) >>= mapM (eval env)
+    do evaled <- runErrorT $ liftThrows (readExprs expr) >>= mapM (eval env)
        case evaled of
-            Left err -> putStrLn $ show err
+            Left err -> print err
             Right [] -> return ()
-            Right vals -> mapM_ (putStrLn . show) vals
+            Right vals -> mapM_ print vals
 
 -- | Evaluate a single expression in a new top environment.
 runOne :: String -> IO ()
@@ -48,13 +48,13 @@ prompt = ">>> "
 
 -- | Return a top-level environment.
 getTopEnv :: IO [Env]
-getTopEnv = getPrimitiveEnv >>= return . (:[])
+getTopEnv = fmap (:[]) getPrimitiveEnv
 
 -- | Run module test cases.
 runTests :: IO ()
 runTests = 
     do putStrLn "Test show:"
-       mapM_ (putStrLn . show) testExpr
+       mapM_ print testExpr
        putChar '\n'
        putStrLn "Parser tests:"
        mapM_ (putStrLn . showEither) testParser

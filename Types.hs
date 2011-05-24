@@ -52,7 +52,7 @@ showExpr (List xs) = showListParen xs
 showExpr (Dotted xs cdr) = showDotted xs cdr
 showExpr (PrimFunc name _) = "#<primitive-procedure " ++ name ++ ">"
 showExpr (Function _ args varargs _) = 
-    "(lambda (" ++ unwords args ++ (maybe "" (" . "++) varargs) ++ ") ...)"
+    "(lambda (" ++ unwords args ++ maybe "" (" . "++) varargs ++ ") ...)"
 showExpr Undefined = "#undefined"
 
 -- | Show a scheme list
@@ -100,10 +100,10 @@ instance Show SchemeError where
 
 -- | Show an error
 showError :: SchemeError -> String
-showError (NumArgs expected found) = "Error: Expected " ++ (show expected)
-    ++ " args; found: " ++ (unwords $ map show found)
+showError (NumArgs expected found) = "Error: Expected " ++ show expected
+    ++ " args; found: " ++ unwords (map show found)
 showError (TypeError expected found) = "Type error: Expected " ++ expected
-    ++ "; found: " ++ (show found)
+    ++ "; found: " ++ show found
 showError (ParseError err) = "Parse error " ++ show err
 showError (BadSpecialForm message expr) = message ++ ": " ++ show expr
 showError (NotFunction expr) = "Expected function; found: " ++ show expr

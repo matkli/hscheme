@@ -97,7 +97,7 @@ getNumber notNumber = throwError $ TypeError "Integer" notNumber
 
 -- | Create numerical fold operators
 numericFoldOp :: (Integer -> Integer -> Integer) -> Integer -> PrimitiveFunction
-numericFoldOp func start args = (mapM getNumber args) >>= return . Number . foldl' func start
+numericFoldOp func start args = fmap (Number . foldl' func start) (mapM getNumber args)
 
 -- | Create numerical binary operators
 numericBinOp :: (Integer -> Integer -> Integer) -> PrimitiveFunction
@@ -110,7 +110,7 @@ numericBinOp _ args = throwError $ NumArgs 2 args
 -- while binary (or m-ary) minus should subtract _from_ it's first argument.
 minus :: PrimitiveFunction
 minus [] = throwError $ NumArgs 1 []
-minus (x:[]) = getNumber x >>= return . Number . negate
+minus (x:[]) = fmap (Number . negate) (getNumber x)
 minus (x:xs) = getNumber x >>= \num -> numericFoldOp (-) num xs
 
 -- | Numerical comparisons
@@ -119,7 +119,7 @@ numericCompare func args =
     do nums <- mapM getNumber args
        return $ Bool $ foldr (\(x,y) -> (&& func x y)) 
                                         True 
-                                        (zipWith (,) nums $ tail nums)
+                                        (zip nums $ tail nums)
 
 ------------------
 -- List operations
@@ -139,7 +139,7 @@ cdr [List (x:xs)] = return $ List xs
 cdr [Dotted [x] y] = return y
 cdr [Dotted (x:xs) y] = return $ Dotted xs y
 cdr [List []] = throwError $ TypeError "List" $ List []
-cdr [noList] = throwError $ TypeError "List" $ noList
+cdr [noList] = throwError $ TypeError "List" noList
 cdr args = throwError $ NumArgs 1 args
 
 -- | Create a pair or add a new head to list

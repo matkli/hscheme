@@ -98,7 +98,7 @@ defineFun env (List (Symbol name : args)) body =
 defineFun env (Dotted (Symbol name : args) varArgs) body = 
     do val <- liftThrows $ lambda env args (Just varArgs) body
        define env name val
-defineFun _ header _ = throwError $ BadSpecialForm "Badly formed define header" $ header
+defineFun _ header _ = throwError $ BadSpecialForm "Badly formed define header" header
 
 -- | Create a new environment with bound variables.
 letVars :: [String] -> [Expr] -> IOThrowsError Env
@@ -106,14 +106,14 @@ letVars names values = do vars <- liftIO $ mapM newIORef values
                           liftIO $ newIORef $ zip names vars
 
 -- | Create an anonymous function.
-lambda :: [Env] -> [Expr] -> (Maybe Expr) -> [Expr] -> ThrowsError Expr
+lambda :: [Env] -> [Expr] -> Maybe Expr -> [Expr] -> ThrowsError Expr
 lambda env args varargs [] = throwError $ BadSpecialForm "Empty function body" $ List []
 lambda env args varargs body =
     do argNames <- mapM getSymbol args
        vaName <- maybe (return Nothing) (getSymbol >=> return . Just) varargs
        return $ Function env argNames vaName body
     where getSymbol (Symbol argName) = return argName
-          getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" $ notSymbol
+          getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" notSymbol
 
 -- | Evaluate an if-expression.
 ifSyntax :: [Env] -> Expr -> Expr -> Expr -> IOThrowsError Expr
