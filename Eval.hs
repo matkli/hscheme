@@ -47,7 +47,7 @@ apply (PrimFunc _ func) args = func args
 apply (Function closure argNames vaName body) args =
     let numArgs = length args
         minArgs = length argNames
-    in if numArgs < minArgs || (numArgs > minArgs && vaName == Nothing)
+    in if numArgs < minArgs || (numArgs > minArgs && isNothing vaName)
           then throwError $ NumArgs (toInteger minArgs) args
           else do let (a, va) = splitAt minArgs args
                   env <- liftM (:closure) $ letVars argNames a
@@ -118,7 +118,7 @@ lambda env args varargs body =
 -- | Evaluate an if-expression.
 ifSyntax :: [Env] -> Expr -> Expr -> Expr -> IOThrowsError Expr
 ifSyntax env test cons alt =
-    do res <- (eval env test)
+    do res <- eval env test
        case res of
             Bool False -> eval env alt
             _ -> eval env cons
