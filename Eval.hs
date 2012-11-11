@@ -11,6 +11,7 @@ module Eval (
 -- System imports
 import Control.Monad.Error
 import Data.IORef
+import Data.Maybe (isNothing)
 
 -- Local imports
 import Types
