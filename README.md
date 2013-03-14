@@ -10,7 +10,7 @@ Copyright 2008, 2013 Mats Klingberg
 This project is licensed under the GNU GPL, see the file LICENSE in this
 directory for the full license text.
 
-[1] http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html
+[1]: http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html
 
 
 Installation
