@@ -1,6 +1,9 @@
 -- | Primitive function definitions for HScheme.
 --
--- Copyright (C) 2008 Mats Klingberg
+-- Copyright 2008 Mats Klingberg
+--
+-- This file is part of hscheme and is licensed under the GNU GPL, see the
+-- LICENSE file for the full license text.
 
 module Primitives (
     -- * Exported Haskell functions
