@@ -1,6 +1,6 @@
 -- | Scheme parser module.
 --
--- Copyright 2008 Mats Klingberg
+-- Copyright 2008, 2023 Mats Gan Klingberg
 --
 -- This file is part of hscheme and is licensed under the GNU GPL, see the
 -- LICENSE file for the full license text.
@@ -78,7 +78,8 @@ list :: Parser Expr
 list = do lexeme $ char '('
           lst <- many expr
           proper lst <|> dotted lst
-    where proper lst = char ')' >> return (List lst)
+    where proper :: [Expr] -> Parser Expr
+          proper lst = char ')' >> return (List lst)
           dotted lst = do lexeme $ char '.'
                           cdr <- expr
                           char ')'
@@ -124,7 +125,8 @@ readExprs str = case parse (whiteSpace >> many (whiteSpace >> expr)) "" str of
 -- | Read a /single/ scheme expression.
 readExpr :: String -> ThrowsError Expr
 readExpr = readExprs >=> checkSingle
-    where checkSingle [e] = return e
+    where checkSingle :: [Expr] -> ThrowsError Expr
+          checkSingle [e] = return e
           checkSingle exprs = throwError $ Default "A single expression was expected"
 
 -- | Test parser

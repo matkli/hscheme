@@ -1,6 +1,6 @@
 -- | Module for evaluating scheme expressions.
 --
--- Copyright 2008 Mats Klingberg
+-- Copyright 2008, 2023 Mats Gan Klingberg
 --
 -- This file is part of hscheme and is licensed under the GNU GPL, see the
 -- LICENSE file for the full license text.
@@ -116,7 +116,8 @@ lambda env args varargs body =
     do argNames <- mapM getSymbol args
        vaName <- maybe (return Nothing) (getSymbol >=> return . Just) varargs
        return $ Function env argNames vaName body
-    where getSymbol (Symbol argName) = return argName
+    where getSymbol :: Expr -> ThrowsError String
+          getSymbol (Symbol argName) = return argName
           getSymbol notSymbol = throwError $ BadSpecialForm "Formals in lambda expression must by symbols" notSymbol
 
 -- | Evaluate an if-expression.
