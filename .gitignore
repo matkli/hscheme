@@ -16,3 +16,4 @@ dist/*
 
 # Documentation
 doc/*
+dist-newstyle/
