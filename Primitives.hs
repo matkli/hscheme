@@ -23,7 +23,7 @@ module Primitives (
 
 -- System imports
 import Data.List
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.IORef
 
 -- Local imports
@@ -151,4 +151,3 @@ cons [x, List xs] = return $ List (x:xs)
 cons [x, Dotted xs y] = return $ Dotted (x:xs) y
 cons [x, y] = return $ Dotted [x] y
 cons args = throwError $ NumArgs 2 args
-

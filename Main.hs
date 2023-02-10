@@ -10,7 +10,7 @@ module Main where
 -- Standard imports
 import System.Environment
 import System.IO
-import Control.Monad.Error
+import Control.Monad.Except
 
 -- hscheme imports
 import Types
@@ -35,7 +35,7 @@ readEvalPrint env = do putStr prompt >> hFlush stdout
 -- | Evaluate a scheme expression, given as a string, in an environment.
 evalString :: [Env] -> String -> IO ()
 evalString env expr =
-    do evaled <- runErrorT $ liftThrows (readExprs expr) >>= mapM (eval env)
+    do evaled <- runExceptT $ liftThrows (readExprs expr) >>= mapM (eval env)
        case evaled of
             Left err -> print err
             Right [] -> return ()
@@ -64,4 +64,4 @@ runTests =
        putChar '\n'
        putStrLn "Eval tests:"
        env <- getTopEnv
-       mapM_ (runErrorT >=> putStrLn . showEither) $ testEval env
+       mapM_ (runExceptT >=> putStrLn . showEither) $ testEval env

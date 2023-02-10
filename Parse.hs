@@ -13,7 +13,7 @@ module Parse (
 
 -- Standard imports
 import Text.ParserCombinators.Parsec
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.Char
 
 -- Local imports

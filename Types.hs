@@ -19,7 +19,7 @@ module Types (
 
 -- System imports
 import Text.ParserCombinators.Parsec ( ParseError )
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.IORef
 
 -- | An environment type (stores variable bindings)
@@ -90,14 +90,9 @@ data SchemeError = NumArgs Integer [Expr]
 -- | Convenience type for functions that can throw a 'SchemeError'
 type ThrowsError = Either SchemeError
 -- | Return type for functions than can do IO and throw a 'SchemeError'
-type IOThrowsError = ErrorT SchemeError IO
+type IOThrowsError = ExceptT SchemeError IO
 
--- Make SchemeError an Error instance
-instance Error SchemeError where
-    noMsg = Default "undefined error"
-    strMsg = Default
-
--- Also make SchemeError a Show instance
+-- Make SchemeError a Show instance
 instance Show SchemeError where
     show = showError
 

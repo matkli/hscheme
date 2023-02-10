@@ -12,7 +12,7 @@ module Eval (
   ) where
 
 -- System imports
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.IORef
 import Data.Maybe (isNothing)
 

@@ -1,13 +1,15 @@
-Name:               hscheme
-Version:            0.1.0.1
-Synopsis:           Simple Scheme interpreter written in Haskell
-Description:        Simple Scheme interpreter written in Haskell
-License:            GPL
-Author:             Mats Gan Klingberg
-Maintainer:         Mats Gan Klingberg <maklingberg@gmail.com>
-Build-Depends:      base < 4.16, mtl < 2.3 , parsec < 3.2
-Build-Type:         Simple
+cabal-version:      >= 1.8
+name:               hscheme
+version:            0.1.0.1
+synopsis:           Simple Scheme interpreter written in Haskell
+author:             Mats Gan Klingberg
+maintainer:         Mats Gan Klingberg <maklingberg@gmail.com>
+license:            GPL
+build-Type:         Simple
 
-Executable:         hscheme
-Main-is:            Main.hs
-other-modules:      Eval, Parse, Primitives, Types
+executable hscheme
+  build-Depends:      base >= 4.15.1.0 && < 4.16,
+                      mtl >= 2.2.2 && < 2.3,
+                      parsec >= 3.1.14.0 && < 3.2
+  main-is:            Main.hs
+  other-modules:      Eval, Parse, Primitives, Types
